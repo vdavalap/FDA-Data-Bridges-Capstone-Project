@@ -1,5 +1,5 @@
 # FDA Data Bridges Capstone Project
-
+-
 This project builds a pipeline for **loading FDA inspection data** from CSVs and **extracting structured observations** from PDF inspection reports into a **SQLite database**.  
 
 The goal is to support analytics and insights on FDA inspection outcomes.

@@ -1,32 +1,32 @@
--- SQLite schema for our Sprint-1 demo.
--- We only create what we truly use today: the `inspections` table.
-
+-- src/schema_sqlite.sql
 PRAGMA foreign_keys = ON;
 
+-- Drop-and-create (safe because we recreate the DB file each run)
+DROP TABLE IF EXISTS inspections;
+
 CREATE TABLE IF NOT EXISTS inspections (
-  -- FDA inspection record identifier (from “Record ID”)
-  inspection_id   INTEGER PRIMARY KEY,
-
-  -- FEI number and firm name let us link to firm entities later (Sprint-2+)
-  fei_number      TEXT,
-  firm_name       TEXT,
-
-  -- Normalized as TEXT (YYYY-MM-DD) for simplicity; can convert to DATE later
-  inspection_date TEXT,
-
-  -- As provided by source (e.g., “Classification” or other type labels)
-  inspection_type TEXT,
-
-  -- Our simple derived label (for now we just mirror inspection_type)
-  outcome         TEXT,
-
-  -- Where the record came from (if any)
-  source_url      TEXT,
-  source_doc      TEXT,
-
-  -- Loader time
-  ingested_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  inspection_id        INTEGER PRIMARY KEY,      -- from "Inspection ID"
+  fei_number           TEXT,                     -- "FEI Number"
+  firm_name            TEXT,                     -- "Legal Name"
+  city                 TEXT,                     -- "City"
+  state                TEXT,                     -- "State"
+  zip                  TEXT,                     -- "Zip"
+  country_area         TEXT,                     -- "Country/Area"
+  fiscal_year          INTEGER,                  -- "Fiscal Year"
+  posted_citations     INTEGER,                  -- Yes/No -> 1/0
+  inspection_end_date  TEXT,                     -- normalized yyyy-mm-dd
+  classification       TEXT,                     -- "Classification"
+  project_area         TEXT,                     -- "Project Area"
+  product_type         TEXT,                     -- "Product Type"
+  source_url           TEXT,                     -- optional (may be NULL)
+  source_doc           TEXT,                     -- filename parsed from URL
+  outcome              TEXT,                     -- optional/future
+  ingested_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-CREATE INDEX IF NOT EXISTS idx_inspections_id ON inspections (inspection_id);
-CREATE INDEX IF NOT EXISTS idx_inspections_fei ON inspections (fei_number);
-CREATE INDEX IF NOT EXISTS idx_inspections_date ON inspections (inspection_date);
+
+-- helpful indexes
+CREATE INDEX IF NOT EXISTS idx_inspections_state        ON inspections(state);
+CREATE INDEX IF NOT EXISTS idx_inspections_fy           ON inspections(fiscal_year);
+CREATE INDEX IF NOT EXISTS idx_inspections_end_date     ON inspections(inspection_end_date);
+CREATE INDEX IF NOT EXISTS idx_inspections_class        ON inspections(classification);
+CREATE INDEX IF NOT EXISTS idx_inspections_fei          ON inspections(fei_number);

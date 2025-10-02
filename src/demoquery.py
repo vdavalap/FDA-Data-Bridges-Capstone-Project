@@ -11,7 +11,7 @@ DB = Path(__file__).resolve().parents[1] / "db" / "state_demo.db"
 
 def main():
     if len(sys.argv) < 2:
-        print("Usage: python3 src/query_cli.py <substring>")
+        print("Usage: python3 src/demoquery.py <substring>")
         sys.exit(1)
 
     needle = sys.argv[1]

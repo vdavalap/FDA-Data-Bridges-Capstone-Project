@@ -20,8 +20,8 @@ FDA-Data-Bridges-Capstone-Project/
 │ ├── config.py # Configuration paths & helpers
 │ ├── load_seed.py # Load inspections.csv into DB
 │ ├── extractpdf.py # Rule-based PDF text extraction
-│ ├── schema_sqlite.sql # Database schema
-│ └── query_cli.py # CLI for running SQL queries
+│ └── schema_sqlite.sql # Database schema
+│ 
 ├── requirements.txt # Python dependencies
 ├── .env.example # Example environment config
 ├── .gitignore # Ignore DB, venv, raw data, unfinished code
@@ -59,15 +59,11 @@ cp .env.example .env
 We start by loading the FDA inspections.csv dataset.
 
 Place inspections.csv into:
-
-bash
-
 data/staged/inspections.csv
+
 Then run:
-
-bash
-
 python src/load_seed.py
+
 This will:
 
 Create db/state_demo.db
@@ -79,28 +75,20 @@ Load inspection rows into the inspections table
 📑 Extracting Observations from PDFs
 1. Place PDF files
 Drop FDA 483/inspection PDFs into:
-
-bash
-
 data/raw/
+
 2. Run Extraction
-bash
-
 python src/extractpdf.py
+
 This will:
-
 Parse PDFs in data/raw/
-
 Extract rule-based observations
-
 Save results into data/processed/
 
 Insert observations into db/state_demo.db
 
 🔍 Querying Data
 Open the DB:
-
-bash
 
 sqlite3 db/state_demo.db
 Example queries:
@@ -128,31 +116,21 @@ CREATE INDEX IF NOT EXISTS idx_inspections_date
 
 CREATE INDEX IF NOT EXISTS idx_observations_doc
   ON observations(source_doc, source_page);
-✅ Requirements File
-requirements.txt includes:
 
-nginx
 
-pandas
-sqlite-utils
-pdfplumber
-python-dotenv
-⚠️ Notes
 db/state_demo.db and data/ are ignored in Git to keep repo clean.
 
 src/extract_pdf_llm.py is excluded since LLM integration isn’t ready.
 
 Always activate your virtual environment before running scripts:
 
-bash
-
 source .venv/bin/activate
-👥 Teammate Quickstart (TL;DR)
+
+Teammates Quickstart (TL;DR)
+
 For Slack/Teams pin:
 
-bash
-
-git clone <repo-url>
+git clone <https://github.com/vdavalap/FDA-Data-Bridges-Capstone-Project>
 cd FDA-Data-Bridges-Capstone-Project
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt

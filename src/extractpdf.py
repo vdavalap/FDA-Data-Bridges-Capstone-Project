@@ -1,4 +1,4 @@
-# src/scripts/extractpdf.py
+# src/extractpdf.py
 from __future__ import annotations
 import re, glob, sqlite3, hashlib
 from pathlib import Path
@@ -34,8 +34,8 @@ def extract_all_text(pdf_path: Path) -> Tuple[str, List[str]]:
 
 def drop_district_box(full_text: str) -> str:
     """
-    Remove the 'DISTRICT ADDRESS AND PHONE NUMBER' block so it doesn't
-    pollute the firm city/state parsing.
+    Removing the 'DISTRICT ADDRESS AND PHONE NUMBER' block so it doesn't
+    misread the firm city/state parsing.
     """
     pattern = (
         r"(DISTRICT\s+ADDRESS\s+AND\s+PHONE\s+NUMBER.*?)"
@@ -124,7 +124,7 @@ def observations_exists(cur: sqlite3.Cursor) -> bool:
 
 def find_or_create_inspection(cur: sqlite3.Cursor, i_cols: List[str], info: Dict[str, str], source_doc: str) -> int:
     """
-    Try to find an existing inspection_id by FEI or by (firm_name, city, state).
+    Tries to find an existing inspection_id by FEI or by (firm_name, city, state).
     If none is found and 'inspections' exists, insert a minimal inspection row
     so the FK in 'observations' will be satisfied.
     """

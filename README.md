@@ -101,22 +101,36 @@ SELECT COUNT(*) FROM inspections;
 -- Count observations
 SELECT COUNT(*) FROM observations;
 
--- View recent observations
-SELECT observation_id, inspection_id, category, severity, source_doc, source_page
-FROM observations
-ORDER BY observation_id DESC
+--State wise inspecions
+SELECT firm_name, city, inspection_end_date, classification, fei_number
+FROM inspections
+WHERE state = 'Virginia'
+ORDER BY inspection_end_date DESC
 LIMIT 10;
-📊 Minimal Helpful Indexes
-Indexes speed up lookups:
 
-sql
+-- Most recent 10 inspections
+SELECT inspection_id, firm_name, state, inspection_end_date, classification
+FROM inspections
+ORDER BY inspection_end_date DESC
+LIMIT 10;
 
-CREATE INDEX IF NOT EXISTS idx_inspections_date
-  ON inspections(inspection_date);
+-- Top 10 product types
+SELECT product_type, COUNT(*) AS inspections_count
+FROM inspections
+GROUP BY product_type
+ORDER BY inspections_count DESC
+LIMIT 10;
 
-CREATE INDEX IF NOT EXISTS idx_observations_doc
-  ON observations(source_doc, source_page);
+-- Top 5 project areas in FY 2022
+SELECT project_area, COUNT(*) AS inspections_count
+FROM inspections
+WHERE fiscal_year = 2022
+GROUP BY project_area
+ORDER BY inspections_count DESC
+LIMIT 5;
 
+--for pdfs
+ SELECT doc_type, fei_number, firm_name, city, state, zip, country, source_doc FROM observations ORDER BY extracted_at DESC LIMIT 20;
 
 db/state_demo.db and data/ are ignored in Git to keep repo clean.
 

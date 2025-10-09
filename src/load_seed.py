@@ -17,7 +17,7 @@ def sniff_delimiter(path: Path, sample_bytes: int = 65536) -> str:
         dialect = csv.Sniffer().sniff(text, delimiters=[",",";","\t","|"])
         return dialect.delimiter
     except Exception:
-        return ";"  # your file uses semicolons
+        return ";"  
 
 def yes_no_to_int(v):
     if v is None:

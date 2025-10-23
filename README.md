@@ -136,7 +136,7 @@ db/state_demo.db and data/ are ignored in Git to keep repo clean.
 
 src/extract_pdf_llm.py is excluded since LLM integration isn’t ready.
 
-Always activate your virtual environment before running scripts:
+If you're doing in virtual environtment always activate your virtual environment before running scripts:
 
 source .venv/bin/activate
 

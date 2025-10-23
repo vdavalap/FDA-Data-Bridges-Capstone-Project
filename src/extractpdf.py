@@ -7,7 +7,7 @@ import fitz  # PyMuPDF
 
 
 # ===== Paths =====
-ROOT    = Path(__file__).resolve().parents[2]          # .../FDA-Data-Bridges-Capstone-Project
+ROOT    = Path(__file__).resolve().parents[1]          # .../FDA-Data-Bridges-Capstone-Project
 RAW_DIR = ROOT / "data" / "raw"
 DB_PATH = ROOT / "db" / "state_demo.db"
 

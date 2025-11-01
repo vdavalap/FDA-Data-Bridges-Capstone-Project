@@ -1,15 +1,21 @@
 # src/extractpdf.py
 from __future__ import annotations
-import re, glob, sqlite3, hashlib
+
+import re
+import glob
+import sqlite3
+import hashlib
 from pathlib import Path
 from typing import Dict, List, Tuple, Optional
+
 import fitz  # PyMuPDF
 
 
 # ===== Paths =====
-ROOT    = Path(__file__).resolve().parents[1]          # .../FDA-Data-Bridges-Capstone-Project
-RAW_DIR = ROOT / "data" / "raw"
-DB_PATH = ROOT / "db" / "state_demo.db"
+ROOT            = Path(__file__).resolve().parents[1]           # .../FDA-Data-Bridges-Capstone-Project
+RAW_DIR         = ROOT / "data" / "raw"
+DOWNLOADS_DIR   = ROOT / "downloads"                            # <--- NEW: also scan this folder
+DB_PATH         = ROOT / "db" / "state_demo.db"
 
 
 # ===== Utilities =====
@@ -25,7 +31,7 @@ def sha_int(*parts: str, mod: int = 10**9) -> int:
 
 def extract_all_text(pdf_path: Path) -> Tuple[str, List[str]]:
     doc = fitz.open(pdf_path)
-    pages = []
+    pages: List[str] = []
     for i in range(doc.page_count):
         pages.append(doc.load_page(i).get_text("text"))
     doc.close()
@@ -221,14 +227,49 @@ def insert_observation_snapshot(cur: sqlite3.Cursor,
     cur.execute(f"INSERT INTO observations ({','.join(cols)}) VALUES ({placeholders});", vals)
 
 
+# ===== File discovery (NEW) =====
+def collect_pdfs() -> List[Path]:
+    """
+    Find PDFs in both data/raw and downloads folders (non-recursive).
+    De-duplicate by filename+size to avoid processing the same file twice.
+    """
+    candidates: List[Path] = []
+
+    # case-insensitive globbing for .pdf in both dirs
+    for folder in (RAW_DIR, DOWNLOADS_DIR):
+        if folder.exists():
+            candidates.extend(sorted(folder.glob("*.pdf")))
+            candidates.extend(sorted(folder.glob("*.PDF")))
+
+    # de-dup by (name, size)
+    seen = set()
+    unique: List[Path] = []
+    for p in candidates:
+        try:
+            key = (p.name.lower(), p.stat().st_size)
+        except OSError:
+            key = (p.name.lower(), 0)
+        if key not in seen:
+            seen.add(key)
+            unique.append(p)
+
+    # logging summary
+    raw_count   = sum(1 for p in unique if p.parent == RAW_DIR)
+    down_count  = sum(1 for p in unique if p.parent == DOWNLOADS_DIR)
+    print(f"Found PDFs → raw: {raw_count}, downloads: {down_count}, total unique: {len(unique)}")
+
+    return unique
+
+
 # ===== Main =====
 def main():
     print(f"DB:   {DB_PATH}")
     print(f"RAW:  {RAW_DIR}")
+    print(f"DL:   {DOWNLOADS_DIR}")
 
-    pdfs = sorted(glob.glob(str(RAW_DIR / "*.pdf"))) + sorted(glob.glob(str(RAW_DIR / "*.PDF")))
-    if not pdfs:
-        print("No PDFs found in data/raw. Add 483/EIR PDFs and re-run.")
+    pdf_paths = collect_pdfs()
+    if not pdf_paths:
+        print("No PDFs found in 'data/raw' or 'downloads'. Add 483/EIR PDFs and re-run.")
         return
 
     con = sqlite3.connect(DB_PATH)
@@ -242,8 +283,7 @@ def main():
     o_cols = table_columns(cur, "observations")
     i_cols = table_columns(cur, "inspections") if inspections_exists(cur) else []
 
-    for p in pdfs:
-        pdfp = Path(p)
+    for pdfp in pdf_paths:
         full, lines = extract_all_text(pdfp)
         full = drop_district_box(full)
 

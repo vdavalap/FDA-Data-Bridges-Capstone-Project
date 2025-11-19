@@ -1,0 +1,1077 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FDA 483 Form Analysis Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* FDA Color Scheme */
+        :root {
+            --fda-blue: #003366;
+            --fda-blue-light: #004C97;
+            --fda-blue-dark: #002244;
+            --fda-yellow: #FFC72C;
+            --fda-yellow-dark: #E6B300;
+            --fda-gray: #F5F5F5;
+            --fda-gray-dark: #E0E0E0;
+            --fda-text: #333333;
+            --fda-text-light: #666666;
+        }
+
+        body {
+            background-color: #FFFFFF;
+            color: var(--fda-text);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        /* FDA Header */
+        .fda-header {
+            background-color: var(--fda-blue);
+            color: white;
+            padding: 1rem 0;
+            border-bottom: 3px solid var(--fda-yellow);
+        }
+
+        .fda-header .navbar-brand {
+            color: white;
+            font-weight: 600;
+            font-size: 1.25rem;
+        }
+
+        .fda-header .navbar-brand:hover {
+            color: var(--fda-yellow);
+        }
+
+        /* Stats Cards - Minimalistic */
+        .stats-card {
+            background-color: white;
+            border: 1px solid var(--fda-gray-dark);
+            border-radius: 4px;
+            transition: box-shadow 0.2s;
+        }
+
+        .stats-card:hover {
+            box-shadow: 0 2px 8px rgba(0, 51, 102, 0.1);
+        }
+
+        .stats-card.total {
+            border-left: 4px solid var(--fda-blue);
+        }
+
+        .stats-card.oai {
+            border-left: 4px solid #C8102E;
+        }
+
+        .stats-card.vai {
+            border-left: 4px solid var(--fda-yellow-dark);
+        }
+
+        .stats-card.nai {
+            border-left: 4px solid #2E7D32;
+        }
+
+        .stats-card .card-title {
+            color: var(--fda-text-light);
+            font-size: 0.875rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .stats-card h2 {
+            color: var(--fda-blue);
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .stats-card.oai h2 {
+            color: #C8102E;
+        }
+
+        .stats-card.vai h2 {
+            color: var(--fda-yellow-dark);
+        }
+
+        .stats-card.nai h2 {
+            color: #2E7D32;
+        }
+
+        /* Classification Badges - Minimalistic */
+        .classification-badge {
+            font-weight: 600;
+            padding: 0.375rem 0.75rem;
+            border-radius: 3px;
+            font-size: 0.875rem;
+            display: inline-block;
+        }
+
+        .classification-OAI {
+            background-color: #FFEBEE;
+            color: #C8102E;
+            border: 1px solid #C8102E;
+        }
+
+        .classification-VAI {
+            background-color: #FFF8E1;
+            color: #F57C00;
+            border: 1px solid var(--fda-yellow-dark);
+        }
+
+        .classification-NAI {
+            background-color: #E8F5E9;
+            color: #2E7D32;
+            border: 1px solid #2E7D32;
+        }
+
+        /* Table Styling */
+        .table {
+            background-color: white;
+        }
+
+        .table thead {
+            background-color: var(--fda-gray);
+            color: var(--fda-text);
+            font-weight: 600;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .table tbody tr {
+            border-bottom: 1px solid var(--fda-gray-dark);
+        }
+
+        .table tbody tr:hover {
+            background-color: #FAFAFA;
+        }
+
+        /* Cards */
+        .card {
+            border: 1px solid var(--fda-gray-dark);
+            border-radius: 4px;
+            box-shadow: none;
+        }
+
+        .card-header {
+            background-color: var(--fda-gray);
+            border-bottom: 1px solid var(--fda-gray-dark);
+            color: var(--fda-text);
+            font-weight: 600;
+        }
+
+        /* Buttons - FDA Style */
+        .btn-primary {
+            background-color: var(--fda-blue);
+            border-color: var(--fda-blue);
+            color: white;
+            font-weight: 500;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--fda-blue-light);
+            border-color: var(--fda-blue-light);
+        }
+
+        .btn-sm {
+            font-size: 0.875rem;
+            padding: 0.25rem 0.75rem;
+        }
+
+        /* Form Controls */
+        .form-control, .form-select {
+            border: 1px solid var(--fda-gray-dark);
+            border-radius: 3px;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--fda-blue);
+            box-shadow: 0 0 0 0.2rem rgba(0, 51, 102, 0.1);
+        }
+
+        /* Violation Cards */
+        .violation-critical {
+            border-left: 4px solid #C8102E;
+            background-color: #FFEBEE;
+        }
+
+        .violation-significant {
+            border-left: 4px solid var(--fda-yellow-dark);
+            background-color: #FFF8E1;
+        }
+
+        .violation-standard {
+            border-left: 4px solid #757575;
+            background-color: #F5F5F5;
+        }
+
+        /* Modal */
+        .modal-header {
+            background-color: var(--fda-gray);
+            border-bottom: 1px solid var(--fda-gray-dark);
+        }
+
+        .modal-title {
+            color: var(--fda-blue);
+            font-weight: 600;
+        }
+
+        /* Badges */
+        .badge {
+            font-weight: 500;
+            padding: 0.35em 0.65em;
+        }
+
+        .bg-danger {
+            background-color: #C8102E !important;
+        }
+
+        /* Spacing */
+        .container-fluid {
+            padding: 2rem 1.5rem;
+        }
+
+        /* Links */
+        a {
+            color: var(--fda-blue);
+        }
+
+        a:hover {
+            color: var(--fda-blue-light);
+        }
+
+        /* Sortable columns */
+        .sortable {
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+        }
+
+        .sortable:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+
+        .sortable i.fa-sort {
+            margin-left: 8px;
+            opacity: 0.5;
+            font-size: 0.85em;
+        }
+
+        .sortable i.info-btn {
+            margin-right: 8px;
+            margin-left: 5px;
+            opacity: 0.5 !important;
+            font-size: 0.9em !important;
+        }
+
+        .sortable i.info-btn:hover {
+            opacity: 1 !important;
+        }
+
+        .sortable.sort-asc i.fa-sort::before {
+            content: "\f0de"; /* fa-sort-up */
+            opacity: 1;
+            color: var(--fda-blue);
+        }
+
+        .sortable.sort-desc i.fa-sort::before {
+            content: "\f0dd"; /* fa-sort-down */
+            opacity: 1;
+            color: var(--fda-blue);
+        }
+
+        /* Info button styling */
+        .info-btn {
+            color: var(--fda-blue);
+            cursor: help;
+            font-size: 0.9em;
+            margin-left: 5px;
+            opacity: 0.5;
+        }
+
+        .info-btn:hover {
+            opacity: 1;
+            color: var(--fda-blue-dark);
+        }
+
+        .form-label {
+            display: flex;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar fda-header">
+        <div class="container-fluid">
+            <span class="navbar-brand mb-0 h1">
+                <i class="fas fa-shield-alt"></i> FDA 483 Form Analysis Dashboard
+            </span>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-4">
+        <!-- Statistics Cards -->
+        <div class="row mb-4" id="statsRow">
+            <div class="col-md-3">
+                <div class="card stats-card total">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            Total Forms
+                            <i class="fas fa-info-circle info-btn" data-bs-toggle="tooltip" data-bs-placement="top" 
+                               title="Total number of FDA Form 483 inspection reports processed and analyzed in the system."></i>
+                        </h5>
+                        <h2 id="totalForms">0</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stats-card oai">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            OAI
+                            <i class="fas fa-info-circle info-btn" data-bs-toggle="tooltip" data-bs-placement="top" 
+                               title="Official Action Indicated - Regulatory action is required. These forms indicate serious violations that warrant enforcement action."></i>
+                        </h5>
+                        <h2 id="oaiCount">0</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stats-card vai">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            VAI
+                            <i class="fas fa-info-circle info-btn" data-bs-toggle="tooltip" data-bs-placement="top" 
+                               title="Voluntary Action Indicated - The firm should take voluntary corrective action. Violations exist but may not require immediate regulatory action."></i>
+                        </h5>
+                        <h2 id="vaiCount">0</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stats-card nai">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            NAI
+                            <i class="fas fa-info-circle info-btn" data-bs-toggle="tooltip" data-bs-placement="top" 
+                               title="No Action Indicated - No significant violations were found during the inspection. The facility is in compliance."></i>
+                        </h5>
+                        <h2 id="naiCount">0</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters Section -->
+        <div class="card mb-3">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-filter"></i> Filters & Search
+                    <button class="btn btn-sm btn-outline-info float-end me-2" onclick="showComplianceProgramsModal()" data-bs-toggle="tooltip" title="View Compliance Program Codes">
+                        <i class="fas fa-info-circle"></i> Compliance Programs
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary float-end" onclick="clearFilters()">
+                        <i class="fas fa-times"></i> Clear All
+                    </button>
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label">
+                            Firm Name
+                            <i class="fas fa-info-circle info-btn" data-bs-toggle="tooltip" data-bs-placement="top" 
+                               title="Filter forms by the legal name of the inspected firm. Partial matches are supported."></i>
+                        </label>
+                        <input type="text" class="form-control" id="firmFilter" placeholder="Filter by firm name...">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">
+                            FEI Number
+                            <i class="fas fa-info-circle info-btn" data-bs-toggle="tooltip" data-bs-placement="top" 
+                               title="Filter by Facility Establishment Identifier (FEI). This is a unique 9-11 digit number assigned by FDA to each registered facility."></i>
+                        </label>
+                        <input type="text" class="form-control" id="feiFilter" placeholder="Filter by FEI...">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">
+                            Publish Date From
+                            <i class="fas fa-info-circle info-btn" data-bs-toggle="tooltip" data-bs-placement="top" 
+                               title="Filter forms published on or after this date. The publish date is when FDA made the form publicly available."></i>
+                        </label>
+                        <input type="date" class="form-control" id="publishDateFrom">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">
+                            Publish Date To
+                            <i class="fas fa-info-circle info-btn" data-bs-toggle="tooltip" data-bs-placement="top" 
+                               title="Filter forms published on or before this date. Use with 'From' date to create a date range."></i>
+                        </label>
+                        <input type="date" class="form-control" id="publishDateTo">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">
+                            Compliance Program
+                            <i class="fas fa-info-circle info-btn" data-bs-toggle="tooltip" data-bs-placement="top" 
+                               title="Filter by FDA Compliance Program code (e.g., 7356.002). Click 'Compliance Programs' button for full list and descriptions."></i>
+                        </label>
+                        <input type="text" class="form-control" id="complianceProgramFilter" placeholder="e.g., 7356.002">
+                    </div>
+                    <div class="col-md-1">
+                        <label class="form-label">
+                            Violations
+                            <i class="fas fa-info-circle info-btn" data-bs-toggle="tooltip" data-bs-placement="top" 
+                               title="Filter by number of violations found in the inspection. Violations are categorized as Critical, Significant, or Standard."></i>
+                        </label>
+                        <select class="form-select" id="violationFilter">
+                            <option value="">All</option>
+                            <option value="0">0</option>
+                            <option value="1-5">1-5</option>
+                            <option value="6-10">6-10</option>
+                            <option value="11+">11+</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="row g-3 mt-2">
+                    <div class="col-md-3">
+                        <label class="form-label">
+                            Classification
+                            <i class="fas fa-info-circle info-btn" data-bs-toggle="tooltip" data-bs-placement="top" 
+                               title="OAI: Official Action Indicated - Regulatory action required. VAI: Voluntary Action Indicated - Firm should take corrective action. NAI: No Action Indicated - No significant violations found."></i>
+                        </label>
+                        <select class="form-select" id="classificationFilter">
+                            <option value="">All Classifications</option>
+                            <option value="OAI">OAI</option>
+                            <option value="VAI">VAI</option>
+                            <option value="NAI">NAI</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">
+                            Sort By
+                            <i class="fas fa-info-circle info-btn" data-bs-toggle="tooltip" data-bs-placement="top" 
+                               title="Select the column to sort results by. You can also click column headers in the table to sort."></i>
+                        </label>
+                        <select class="form-select" id="sortBy">
+                            <option value="publish_date">Publish Date</option>
+                            <option value="firm">Firm Name</option>
+                            <option value="fei">FEI Number</option>
+                            <option value="violation_count">Violations</option>
+                            <option value="overall_classification">Classification</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">
+                            Sort Order
+                            <i class="fas fa-info-circle info-btn" data-bs-toggle="tooltip" data-bs-placement="top" 
+                               title="Ascending: A-Z, 0-9, oldest to newest. Descending: Z-A, 9-0, newest to oldest."></i>
+                        </label>
+                        <select class="form-select" id="sortOrder">
+                            <option value="desc">Descending</option>
+                            <option value="asc">Ascending</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <button class="btn btn-primary me-2" onclick="loadSummary()">
+                            <i class="fas fa-sync-alt"></i> Refresh
+                        </button>
+                        <button class="btn btn-secondary" onclick="applyFilters()">
+                            <i class="fas fa-search"></i> Apply Filters
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary Table -->
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-table"></i> 483 Form Summary</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover" id="summaryTable">
+                        <thead>
+                            <tr>
+                                <th class="sortable" data-sort="firm">
+                                    Firm 
+                                    <i class="fas fa-info-circle info-btn" data-bs-toggle="tooltip" data-bs-placement="top" 
+                                       title="Legal name of the inspected facility"></i>
+                                    <i class="fas fa-sort"></i>
+                                </th>
+                                <th class="sortable" data-sort="fei">
+                                    FEI 
+                                    <i class="fas fa-info-circle info-btn" data-bs-toggle="tooltip" data-bs-placement="top" 
+                                       title="Facility Establishment Identifier - Unique FDA registration number"></i>
+                                    <i class="fas fa-sort"></i>
+                                </th>
+                                <th>
+                                    Form Type
+                                    <i class="fas fa-info-circle info-btn" data-bs-toggle="tooltip" data-bs-placement="top" 
+                                       title="Type of FDA form (typically 483 for inspection observations)"></i>
+                                </th>
+                                <th class="sortable" data-sort="publish_date">
+                                    Publish Date
+                                    <span style="display: inline-block; margin: 0 5px;">
+                                        <i class="fas fa-info-circle info-btn" data-bs-toggle="tooltip" data-bs-placement="top" 
+                                           title="Date when FDA published the form publicly" style="color: #003F87; cursor: help;"></i>
+                                    </span>
+                                    <i class="fas fa-sort" style="margin-left: 5px;"></i>
+                                </th>
+                                <th class="sortable" data-sort="overall_classification">
+                                    Classification 
+                                    <i class="fas fa-info-circle info-btn" data-bs-toggle="tooltip" data-bs-placement="top" 
+                                       title="OAI: Action required | VAI: Voluntary action | NAI: No action needed"></i>
+                                    <i class="fas fa-sort"></i>
+                                </th>
+                                <th>
+                                    Compliance Programs
+                                    <i class="fas fa-info-circle info-btn" data-bs-toggle="tooltip" data-bs-placement="top" 
+                                       title="FDA Compliance Program codes applicable to this inspection. Click 'Compliance Programs' button for details."></i>
+                                </th>
+                                <th class="sortable" data-sort="violation_count">
+                                    Violations 
+                                    <i class="fas fa-info-circle info-btn" data-bs-toggle="tooltip" data-bs-placement="top" 
+                                       title="Total number of violations found, categorized as Critical, Significant, or Standard"></i>
+                                    <i class="fas fa-sort"></i>
+                                </th>
+                                <th>
+                                    Actions
+                                    <i class="fas fa-info-circle info-btn" data-bs-toggle="tooltip" data-bs-placement="top" 
+                                       title="Click 'Details' to view comprehensive violation analysis, CFR codes, and recommended actions"></i>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="summaryTableBody">
+                            <tr>
+                                <td colspan="8" class="text-center">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detail Modal -->
+    <div class="modal fade" id="detailModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Violation Analysis Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="detailModalBody">
+                    Loading...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Compliance Programs Modal -->
+    <div class="modal fade" id="complianceProgramsModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-book"></i> FDA Compliance Program Codes
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted mb-3">
+                        FDA Compliance Programs are systematic approaches used by FDA to inspect and evaluate regulated facilities. 
+                        Each program has a specific code and focuses on particular aspects of manufacturing, quality, or compliance.
+                    </p>
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Program Code</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>7356.002</strong></td>
+                                    <td>Drug Manufacturing Inspections - Comprehensive inspections of drug manufacturing facilities to ensure compliance with Current Good Manufacturing Practice (CGMP) regulations.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>7356.008</strong></td>
+                                    <td>Compounding Pharmacy Inspections - Inspections of compounding pharmacies to ensure compliance with compounding standards and prevent contamination or mislabeling.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>7346.832</strong></td>
+                                    <td>Sterile Drug Products - Focused inspections on facilities manufacturing sterile drug products, emphasizing aseptic processing and contamination control.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>7356.014</strong></td>
+                                    <td>Drug Quality Assurance - Inspections focused on quality assurance systems, including testing, documentation, and quality control processes.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>7356.001</strong></td>
+                                    <td>Drug GMP Inspections - General Good Manufacturing Practice inspections covering all aspects of drug manufacturing compliance.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>7356.003</strong></td>
+                                    <td>Active Pharmaceutical Ingredient (API) Inspections - Inspections of facilities manufacturing active pharmaceutical ingredients, ensuring quality and purity standards.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>7346.844</strong></td>
+                                    <td>Non-Sterile Drug Products - Inspections of facilities manufacturing non-sterile drug products, focusing on contamination prevention and quality control.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>7356.009</strong></td>
+                                    <td>Human Drug Outlets - Inspections of retail and wholesale drug outlets to ensure proper storage, handling, and distribution of human drugs.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="alert alert-info mt-3">
+                        <strong><i class="fas fa-info-circle"></i> Note:</strong> 
+                        For complete details on FDA Compliance Programs, refer to the 
+                        <a href="https://www.fda.gov/inspections-compliance-enforcement-and-criminal-investigations/compliance-program-manual" target="_blank">
+                            FDA Compliance Program Manual
+                        </a>.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let summaryData = [];
+        let currentSort = { field: 'publish_date', order: 'desc' };
+
+        // Initialize sortable columns
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize Bootstrap tooltips
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+
+            // Add click handlers to sortable columns
+            document.querySelectorAll('.sortable').forEach(header => {
+                header.addEventListener('click', function() {
+                    const sortField = this.getAttribute('data-sort');
+                    if (currentSort.field === sortField) {
+                        // Toggle order if same field
+                        currentSort.order = currentSort.order === 'asc' ? 'desc' : 'asc';
+                    } else {
+                        currentSort.field = sortField;
+                        currentSort.order = 'desc';
+                    }
+                    // Update sort dropdowns
+                    document.getElementById('sortBy').value = sortField;
+                    document.getElementById('sortOrder').value = currentSort.order;
+                    // Update visual indicators
+                    updateSortIndicators();
+                    // Apply filters and sorting
+                    applyFilters();
+                });
+            });
+
+            // Add event listeners for filter inputs
+            ['firmFilter', 'feiFilter', 'publishDateFrom', 'publishDateTo', 
+             'complianceProgramFilter', 'violationFilter', 'classificationFilter',
+             'sortBy', 'sortOrder'].forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.addEventListener('change', applyFilters);
+                    if (element.type === 'text' || element.type === 'date') {
+                        element.addEventListener('input', applyFilters);
+                    }
+                }
+            });
+
+            // Initialize sort indicators
+            updateSortIndicators();
+        });
+
+        function showComplianceProgramsModal() {
+            const modal = new bootstrap.Modal(document.getElementById('complianceProgramsModal'));
+            modal.show();
+        }
+
+        function updateSortIndicators() {
+            document.querySelectorAll('.sortable').forEach(header => {
+                header.classList.remove('sort-asc', 'sort-desc');
+                if (header.getAttribute('data-sort') === currentSort.field) {
+                    header.classList.add(`sort-${currentSort.order}`);
+                }
+            });
+        }
+
+        async function loadSummary() {
+            try {
+                const response = await fetch('/api/summary');
+                summaryData = await response.json();
+                applyFilters();
+                loadStats();
+            } catch (error) {
+                console.error('Error loading summary:', error);
+            }
+        }
+
+        async function loadStats() {
+            try {
+                const response = await fetch('/api/stats');
+                const stats = await response.json();
+                
+                document.getElementById('totalForms').textContent = stats.total_forms || 0;
+                document.getElementById('oaiCount').textContent = stats.classifications.OAI || 0;
+                document.getElementById('vaiCount').textContent = stats.classifications.VAI || 0;
+                document.getElementById('naiCount').textContent = stats.classifications.NAI || 0;
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
+        function applyFilters() {
+            if (summaryData.length === 0) return;
+
+            // Get filter values
+            const firmFilter = document.getElementById('firmFilter').value.toLowerCase().trim();
+            const feiFilter = document.getElementById('feiFilter').value.toLowerCase().trim();
+            const publishDateFrom = document.getElementById('publishDateFrom').value;
+            const publishDateTo = document.getElementById('publishDateTo').value;
+            const complianceProgramFilter = document.getElementById('complianceProgramFilter').value.toLowerCase().trim();
+            const violationFilter = document.getElementById('violationFilter').value;
+            const classificationFilter = document.getElementById('classificationFilter').value;
+            
+            // Get sort values
+            const sortBy = document.getElementById('sortBy').value;
+            const sortOrder = document.getElementById('sortOrder').value;
+            currentSort = { field: sortBy, order: sortOrder };
+            updateSortIndicators();
+
+            // Apply filters
+            let filteredData = summaryData.filter(item => {
+                // Firm filter
+                if (firmFilter && !item.firm.toLowerCase().includes(firmFilter)) {
+                    return false;
+                }
+
+                // FEI filter
+                if (feiFilter && !item.fei.toLowerCase().includes(feiFilter)) {
+                    return false;
+                }
+
+                // Publish date filter
+                if (publishDateFrom || publishDateTo) {
+                    if (!item.publish_date || item.publish_date === '') {
+                        return false;
+                    }
+                    const itemDate = item.publish_date.split(' ')[0]; // Get date part only
+                    if (publishDateFrom && itemDate < publishDateFrom) {
+                        return false;
+                    }
+                    if (publishDateTo && itemDate > publishDateTo) {
+                        return false;
+                    }
+                }
+
+                // Compliance program filter
+                if (complianceProgramFilter) {
+                    const programs = item.relevant_compliance_programs || [];
+                    const hasProgram = programs.some(p => 
+                        p.toLowerCase().includes(complianceProgramFilter)
+                    );
+                    if (!hasProgram) {
+                        return false;
+                    }
+                }
+
+                // Violation count filter
+                if (violationFilter) {
+                    const count = item.violation_count || 0;
+                    switch(violationFilter) {
+                        case '0':
+                            if (count !== 0) return false;
+                            break;
+                        case '1-5':
+                            if (count < 1 || count > 5) return false;
+                            break;
+                        case '6-10':
+                            if (count < 6 || count > 10) return false;
+                            break;
+                        case '11+':
+                            if (count < 11) return false;
+                            break;
+                    }
+                }
+
+                // Classification filter
+                if (classificationFilter && item.overall_classification !== classificationFilter) {
+                    return false;
+                }
+
+                return true;
+            });
+
+            // Apply sorting
+            filteredData.sort((a, b) => {
+                let aVal = a[currentSort.field];
+                let bVal = b[currentSort.field];
+
+                // Handle date sorting
+                if (currentSort.field === 'publish_date') {
+                    aVal = aVal ? new Date(aVal.split(' ')[0]) : new Date(0);
+                    bVal = bVal ? new Date(bVal.split(' ')[0]) : new Date(0);
+                }
+
+                // Handle numeric sorting
+                if (currentSort.field === 'violation_count') {
+                    aVal = aVal || 0;
+                    bVal = bVal || 0;
+                }
+
+                // Handle string sorting
+                if (typeof aVal === 'string') {
+                    aVal = aVal.toLowerCase();
+                    bVal = (bVal || '').toLowerCase();
+                }
+
+                // Compare values
+                let comparison = 0;
+                if (aVal < bVal) {
+                    comparison = -1;
+                } else if (aVal > bVal) {
+                    comparison = 1;
+                }
+
+                // Apply sort order
+                return currentSort.order === 'asc' ? comparison : -comparison;
+            });
+
+            displaySummary(filteredData);
+        }
+
+        function clearFilters() {
+            document.getElementById('firmFilter').value = '';
+            document.getElementById('feiFilter').value = '';
+            document.getElementById('publishDateFrom').value = '';
+            document.getElementById('publishDateTo').value = '';
+            document.getElementById('complianceProgramFilter').value = '';
+            document.getElementById('violationFilter').value = '';
+            document.getElementById('classificationFilter').value = '';
+            document.getElementById('sortBy').value = 'publish_date';
+            document.getElementById('sortOrder').value = 'desc';
+            currentSort = { field: 'publish_date', order: 'desc' };
+            updateSortIndicators();
+            applyFilters();
+        }
+
+        function displaySummary(data) {
+            const tbody = document.getElementById('summaryTableBody');
+
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="text-center">No data found</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = data.map(item => {
+                const classificationClass = `classification-${item.overall_classification}`;
+                const programs = item.relevant_compliance_programs.join(', ') || 'N/A';
+                
+                // Format publish date
+                let publishDateDisplay = 'N/A';
+                if (item.publish_date) {
+                    try {
+                        // Try to format the date nicely
+                        const dateStr = item.publish_date.split(' ')[0]; // Get date part only
+                        const [year, month, day] = dateStr.split('-');
+                        publishDateDisplay = `${month}/${day}/${year}`;
+                    } catch (e) {
+                        publishDateDisplay = item.publish_date;
+                    }
+                }
+                
+                return `
+                    <tr>
+                        <td>${item.firm}</td>
+                        <td>${item.fei}</td>
+                        <td>${item.form_type}</td>
+                        <td><small>${publishDateDisplay}</small></td>
+                        <td><span class="classification-badge ${classificationClass}">${item.overall_classification}</span></td>
+                        <td><small>${programs}</small></td>
+                        <td>${item.violation_count}</td>
+                        <td>
+                            <button class="btn btn-sm btn-primary" onclick="showDetails('${item.id}')">
+                                <i class="fas fa-info-circle"></i> Details
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        async function showDetails(identifier) {
+            try {
+                const response = await fetch(`/api/details/${identifier}`);
+                const details = await response.json();
+                displayDetails(details);
+                
+                const modal = new bootstrap.Modal(document.getElementById('detailModal'));
+                modal.show();
+            } catch (error) {
+                console.error('Error loading details:', error);
+                alert('Error loading details');
+            }
+        }
+
+        function displayDetails(details) {
+            const body = document.getElementById('detailModalBody');
+            
+            // Classification section
+            const classificationClass = `classification-${details.overall_classification}`;
+            let html = `
+                <div class="mb-4">
+                    <h5>File Information</h5>
+                    <p><strong>Filename:</strong> <code>${details.filename || 'N/A'}</code></p>
+                    ${details.download_url ? `
+                        <p>
+                            <a href="${details.download_url}" 
+                               class="btn btn-sm btn-outline-primary" 
+                               download="${details.filename}"
+                               target="_blank">
+                                <i class="fas fa-download"></i> Download PDF
+                            </a>
+                        </p>
+                    ` : ''}
+                </div>
+                
+                <div class="mb-4">
+                    <h5>Overall Classification</h5>
+                    <p><span class="classification-badge ${classificationClass}">${details.overall_classification}</span></p>
+                    <p><strong>Justification:</strong> ${details.classification_justification}</p>
+                </div>
+
+                <div class="mb-4">
+                    <h5>Relevant Compliance Programs</h5>
+                    <ul>
+                        ${details.relevant_compliance_programs.map(p => `<li>${p}</li>`).join('')}
+                    </ul>
+                </div>
+            `;
+
+            // Violations by Severity
+            html += '<div class="mb-4"><h5>Violation Analysis by Severity</h5>';
+            
+            for (const [severity, violations] of Object.entries(details.violations_by_severity)) {
+                if (violations.length > 0) {
+                    const severityClass = severity.toLowerCase();
+                    const headerClass = severityClass === 'critical' ? 'bg-danger' : severityClass === 'significant' ? 'bg-warning' : 'bg-secondary';
+                    html += `
+                        <div class="card mb-3 violation-${severityClass}">
+                            <div class="card-header ${headerClass} text-white" style="background-color: ${severityClass === 'critical' ? '#C8102E' : severityClass === 'significant' ? '#F57C00' : '#757575'} !important;">
+                                <strong>${severity} Violations (${violations.length})</strong>
+                            </div>
+                            <div class="card-body">
+                    `;
+                    
+                    violations.forEach(violation => {
+                        html += `
+                            <div class="mb-3 p-3 violation-${severityClass.toLowerCase()} rounded">
+                                <h6 class="mb-2">Observation ${violation.observation_number}</h6>
+                                <p class="mb-1"><strong>Violation Code:</strong> <code>${violation.violation_code}</code></p>
+                                <p class="mb-1"><strong>Rationale:</strong> ${violation.rationale}</p>
+                                <p class="mb-1"><strong>Risk Level:</strong> <span class="badge bg-secondary">${violation.risk_level}</span></p>
+                                <p class="mb-1"><strong>Compliance Program:</strong> ${violation.compliance_program}</p>
+                                ${violation.is_repeat ? '<span class="badge bg-danger mb-2">Repeat Violation</span>' : ''}
+                                <p class="mb-0"><strong>Action Required:</strong> ${violation.action_required}</p>
+                            </div>
+                        `;
+                    });
+                    
+                    html += '</div></div>';
+                }
+            }
+            html += '</div>';
+
+            // Violations by Compliance Program
+            html += '<div class="mb-4"><h5>Violation Analysis by Compliance Program Criteria</h5>';
+            for (const [program, violations] of Object.entries(details.violations_by_program)) {
+                html += `
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <strong>Program ${program}</strong>
+                        </div>
+                        <div class="card-body">
+                `;
+                
+                violations.forEach(violation => {
+                    const severityClass = violation.classification.toLowerCase();
+                    html += `
+                        <div class="mb-2 p-2 violation-${severityClass}">
+                            <strong>Observation ${violation.observation_number}</strong> - ${violation.classification}
+                            <br><small>${violation.rationale}</small>
+                        </div>
+                    `;
+                });
+                
+                html += '</div></div>';
+            }
+            html += '</div>';
+
+            // Follow-up Actions
+            html += `
+                <div class="mb-4">
+                    <h5>Follow-Up Actions</h5>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <h6>Immediate (15 days)</h6>
+                            <ul>
+                                ${details.follow_up_actions.immediate?.map(a => `<li>${a}</li>`).join('') || '<li>None</li>'}
+                            </ul>
+                        </div>
+                        <div class="col-md-4">
+                            <h6>Short-Term (30-60 days)</h6>
+                            <ul>
+                                ${details.follow_up_actions.short_term?.map(a => `<li>${a}</li>`).join('') || '<li>None</li>'}
+                            </ul>
+                        </div>
+                        <div class="col-md-4">
+                            <h6>Long-Term (6-12 months)</h6>
+                            <ul>
+                                ${details.follow_up_actions.long_term?.map(a => `<li>${a}</li>`).join('') || '<li>None</li>'}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Risk Prioritization
+            if (details.risk_prioritization) {
+                html += `
+                    <div class="mb-4">
+                        <h5>Risk Prioritization</h5>
+                        <p><strong>High Priority Elements:</strong></p>
+                        <ul>
+                            ${details.risk_prioritization.high_priority_elements?.map(e => `<li>${e}</li>`).join('') || ''}
+                        </ul>
+                        <p><strong>Regulatory Meeting Topics:</strong></p>
+                        <ul>
+                            ${details.risk_prioritization.regulatory_meeting_topics?.map(t => `<li>${t}</li>`).join('') || ''}
+                        </ul>
+                    </div>
+                `;
+            }
+
+            body.innerHTML = html;
+        }
+
+        // Event listeners
+        // Load on page load
+        loadSummary();
+    </script>
+</body>
+</html>
+

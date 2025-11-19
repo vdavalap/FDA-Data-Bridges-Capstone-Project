@@ -1,19 +1,96 @@
-# Python / venv
-.venv/
+# Python
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
 
-# Secrets
+# Virtual Environment
+venv/
+env/
+ENV/
+.venv
+
+# Environment Variables
 .env
+.env.local
+.env.*.local
 
-# Data / DB 
-db/*.db
-data/raw/*
-data/staged/*
-data/processed/*
+# Downloaded PDFs - exclude all downloaded FDA 483 PDFs
+downloaded_pdfs/
+*.pdf
 
-# OS/IDE
-.DS_Store
+# Results and JSON files - exclude all result JSONs
+results/
+*.json
+
+# Dataset files (Excel and CSV) - exclude all downloaded datasets
+fda_outputs/
+downloaded_excel/
+fda_dashboard_downloads/
+*.xlsx
+*.xls
+*.csv
+
+# IDE
 .vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
 
-src/extract_pdf_llm.py
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# pytest
+.pytest_cache/
+.coverage
+htmlcov/
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+*.bak
+~$*
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# Flask
+instance/
+.webassets-cache
+
+# Selenium
+*.crdownload
+geckodriver.log
+
+# Validation reports (generated)
+validation_report.json
+review_queue.json
+

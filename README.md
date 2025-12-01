@@ -252,26 +252,9 @@ python dashboard.py
 
 ## Fine-tuning
 
-To improve classification accuracy with your labeled data:
+- **Status:** No fine-tuning is included in this release. The processing pipeline uses pretrained OpenAI models (via the OpenAI API) for all inference.
 
-1. Create example labeled data structure:
-```bash
-python finetune_preparation.py create_example labeled_data_example.json
-```
-
-2. Add your labeled examples to the JSON file with:
-   - Firm information
-   - Observations
-   - Expected output (classification, violations, etc.)
-
-3. Prepare dataset for fine-tuning:
-```bash
-python finetune_preparation.py prepare labeled_data.json finetuning_dataset.jsonl
-```
-
-4. Upload to OpenAI for fine-tuning (using OpenAI API or CLI)
-
-5. Update `model` parameter in `FDA483Processor` to use fine-tuned model
+- **Notes:** The previous fine-tuning helper (`finetune_preparation.py`) has been archived/removed from the main pipeline. If you choose to fine-tune in the future, prepare a validated labeled dataset (gold or silver), convert it to the OpenAI JSONL chat fine-tuning format, and follow OpenAI's hosted fine-tuning workflow. Contact the repository owner or check project history for archived helper scripts.
 
 ## Example Output
 

@@ -112,9 +112,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--limit",
         type=int,
-        default=10,
+        default=0,
         metavar="N",
-        help="Maximum number of PDFs to download (default: 10). Use 0 for no limit. Example: --limit 50",
+        help="Maximum number of PDFs to download (default: 0 = download all). Use 0 for no limit. Example: --limit 50",
     )
     return parser.parse_args()
 

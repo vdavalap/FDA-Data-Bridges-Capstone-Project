@@ -30,8 +30,8 @@ This system is designed for regulatory professionals, compliance officers, and q
 - **Automated Classification**: Uses OpenAI to classify 483 forms (OAI, VAI, NAI)
 - **Violation Analysis**: Identifies and categorizes violations by severity (Critical, Significant, Standard)
 - **Compliance Program Mapping**: Links violations to relevant FDA Compliance Programs
-- **Fine-tuning Support**: Prepare labeled data for model fine-tuning
 - **Interactive Dashboard**: Web-based dashboard for viewing analysis results with firm names, FEI numbers, and detailed violation analysis
+
 - **Batch Processing**: Process multiple 483 forms simultaneously
 - **Firm Name Extraction**: Automatically extracts firm names and FEI numbers from PDFs and Excel files
 
@@ -147,13 +147,9 @@ Then open your browser to `http://localhost:5000`
    - Uses OpenAI to extract firm info from PDFs when Excel data unavailable
    - Updates all result JSON files
 
-5. **finetune_preparation.py**: Tools for:
-   - Creating labeled data templates
-   - Converting to OpenAI fine-tuning format
+5. **download_pdfs.py**: Downloads PDFs from URLs in CSV file
 
-6. **download_pdfs.py**: Downloads PDFs from URLs in CSV file
-
-7. **fda_dataset_downloader.py**: Downloads FDA dashboard data:
+6. **fda_dataset_downloader.py**: Downloads FDA dashboard data:
    - Automates Excel/CSV download from FDA website
    - Converts Excel files to CSV format
    - Skips download if CSV already exists (use `--force` to re-download)
@@ -250,11 +246,6 @@ python dashboard.py
 
 5. **View Results**: Open `http://localhost:5000` in your browser
 
-## Fine-tuning
-
-- **Status:** No fine-tuning is included in this release. The processing pipeline uses pretrained OpenAI models (via the OpenAI API) for all inference.
-
-- **Notes:** The previous fine-tuning helper (`finetune_preparation.py`) has been archived/removed from the main pipeline. If you choose to fine-tune in the future, prepare a validated labeled dataset (gold or silver), convert it to the OpenAI JSONL chat fine-tuning format, and follow OpenAI's hosted fine-tuning workflow. Contact the repository owner or check project history for archived helper scripts.
 
 ## Example Output
 
@@ -331,7 +322,7 @@ FDA-483-Form-Analysis-System/
 │   └── fix_firm_names.py              # Extract and update firm names/FEI numbers
 │
 ├── Model Training
-│   └── finetune_preparation.py       # Prepare labeled data for fine-tuning
+│   └── (no automated fine-tuning included in this release)
 │
 ├── Web Interface
 │   ├── templates/
@@ -371,6 +362,7 @@ FDA-483-Form-Analysis-System/
 
 - Ensure you have sufficient OpenAI API credits for processing
 - PDF text extraction quality depends on PDF format
-- Fine-tuning requires labeled data for best results
 - Dashboard requires results JSON files in the `results` folder
 - Firm names and FEI numbers are automatically extracted but can be manually updated in result JSON files
+ - Dashboard requires results JSON files in the `results` folder
+ - Firm names and FEI numbers are automatically extracted but can be manually updated in result JSON files

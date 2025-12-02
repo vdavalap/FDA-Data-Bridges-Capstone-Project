@@ -319,15 +319,15 @@ def main() -> None:
     
     ensure_dirs()
     
-    # Check if CSV already exists
+    # Check for existing CSVs to inform user — but proceed to download.
+    # The downloader will fetch the latest dataset and then cleanup older files
+    # keeping only the newest + previous latest (controlled by cleanup_old_files()).
     existing_csvs = list(Path(OUTPUT_DIR).glob("*.csv"))
-    if existing_csvs and not args.force:
+    if existing_csvs:
         latest_csv = max(existing_csvs, key=lambda p: p.stat().st_mtime)
-        logging.info("CSV file already exists: %s", latest_csv.name)
-        logging.info("Skipping download. Use --force to re-download.")
-        print(f"\n✓ CSV already exists: {latest_csv}")
-        print("  Use --force flag to re-download")
-        return
+        logging.info("Existing CSV found: %s", latest_csv.name)
+        print(f"\n✓ Existing CSV found: {latest_csv}")
+        print("  Proceeding to download latest datasets; older datasets will be cleaned up (keeps latest 2). Use --force to force re-download behavior if needed.")
     
     driver = chrome_driver(DOWNLOAD_DIR)
 

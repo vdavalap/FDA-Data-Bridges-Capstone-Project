@@ -49,11 +49,32 @@
             background-color: white;
             border: 1px solid var(--fda-gray-dark);
             border-radius: 4px;
-            transition: box-shadow 0.2s;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
         }
 
         .stats-card:hover {
-            box-shadow: 0 2px 8px rgba(0, 51, 102, 0.1);
+            box-shadow: 0 8px 16px rgba(0, 51, 102, 0.15);
+            transform: translateY(-4px);
+            border-color: var(--fda-blue);
+        }
+
+        .stats-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+            pointer-events: none;
+        }
+
+        .stats-card:hover::before {
+            left: 100%;
         }
 
         .stats-card.total {
@@ -460,6 +481,83 @@
             display: flex;
             align-items: center;
         }
+
+        /* Enhanced Filter & Table Styles */
+        .fw-500 {
+            font-weight: 500;
+        }
+
+        .dropdown-menu {
+            border: 1px solid #E0E0E0;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-light {
+            border: 1px solid #E0E0E0;
+            background-color: white;
+            color: #333;
+        }
+
+        .btn-light:hover {
+            background-color: #F5F5F5;
+            border-color: #D0D0D0;
+        }
+
+        .table tbody tr {
+            border-bottom: 1px solid #E0E0E0;
+            transition: background-color 0.2s;
+        }
+
+        .table tbody tr:hover {
+            background-color: #F5F5F5;
+        }
+
+        .table tbody tr:nth-child(odd) {
+            background-color: #FAFAFA;
+        }
+
+        .table tbody tr:nth-child(odd):hover {
+            background-color: #F5F5F5;
+        }
+
+        .pagination {
+            margin: 0;
+            /* shift pagination left to avoid chatbot overlap */
+            margin-right: 120px;
+        }
+
+        @media (max-width: 992px) {
+            .pagination { margin-right: 40px; }
+        }
+
+        .page-link {
+            color: #003366;
+            border: 1px solid #E0E0E0;
+            padding: 0.5rem 0.75rem;
+            margin: 0 2px;
+            border-radius: 3px;
+        }
+
+        .page-link:hover {
+            background-color: #F5F5F5;
+            color: #003366;
+        }
+
+        .page-item.active .page-link {
+            background-color: #003366;
+            border-color: #003366;
+            color: white;
+        }
+
+        a {
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        a:hover {
+            color: #0052CC;
+        }
     </style>
 </head>
 <body>
@@ -472,244 +570,207 @@
     </nav>
 
     <div class="container-fluid mt-4">
-        <!-- Statistics Cards -->
-        <div class="row mb-4" id="statsRow">
-            <div class="col-md-3">
-                <div class="card stats-card total">
-                    <div class="card-body">
-                        <h5 class="card-title">
-                            Total Forms
-                            <i class="fas fa-info-circle info-btn" data-bs-toggle="tooltip" data-bs-placement="top" 
-                               title="Total number of FDA Form 483 inspection reports processed and analyzed in the system."></i>
-                        </h5>
-                        <h2 id="totalForms">0</h2>
+        <!-- Statistics Cards with Compliance Programs Button -->
+        <div class="mb-4">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <div class="card stats-card total">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                Total Forms
+                                <i class="fas fa-info-circle info-btn" data-bs-toggle="tooltip" data-bs-placement="top" 
+                                   title="Total number of FDA Form 483 inspection reports processed and analyzed in the system."></i>
+                            </h5>
+                            <h2 id="totalForms">0</h2>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card stats-card oai">
-                    <div class="card-body">
-                        <h5 class="card-title">
-                            OAI
-                            <i class="fas fa-info-circle info-btn" data-bs-toggle="tooltip" data-bs-placement="top" 
-                               title="Official Action Indicated - Regulatory action is required. These forms indicate serious violations that warrant enforcement action."></i>
-                        </h5>
-                        <h2 id="oaiCount">0</h2>
+                <div class="col-md-3">
+                    <div class="card stats-card oai">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                OAI
+                                <i class="fas fa-info-circle info-btn" data-bs-toggle="tooltip" data-bs-placement="top" 
+                                   title="Official Action Indicated - Regulatory action is required. These forms indicate serious violations that warrant enforcement action."></i>
+                            </h5>
+                            <h2 id="oaiCount">0</h2>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card stats-card vai">
-                    <div class="card-body">
-                        <h5 class="card-title">
-                            VAI
-                            <i class="fas fa-info-circle info-btn" data-bs-toggle="tooltip" data-bs-placement="top" 
-                               title="Voluntary Action Indicated - The firm should take voluntary corrective action. Violations exist but may not require immediate regulatory action."></i>
-                        </h5>
-                        <h2 id="vaiCount">0</h2>
+                <div class="col-md-3">
+                    <div class="card stats-card vai">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                VAI
+                                <i class="fas fa-info-circle info-btn" data-bs-toggle="tooltip" data-bs-placement="top" 
+                                   title="Voluntary Action Indicated - The firm should take voluntary corrective action. Violations exist but may not require immediate regulatory action."></i>
+                            </h5>
+                            <h2 id="vaiCount">0</h2>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card stats-card nai">
-                    <div class="card-body">
-                        <h5 class="card-title">
-                            NAI
-                            <i class="fas fa-info-circle info-btn" data-bs-toggle="tooltip" data-bs-placement="top" 
-                               title="No Action Indicated - No significant violations were found during the inspection. The facility is in compliance."></i>
-                        </h5>
-                        <h2 id="naiCount">0</h2>
+                <div class="col-md-3 position-relative">
+                    <div class="card stats-card nai">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                NAI
+                                <i class="fas fa-info-circle info-btn" data-bs-toggle="tooltip" data-bs-placement="top" 
+                                   title="No Action Indicated - No significant violations were found during the inspection. The facility is in compliance."></i>
+                            </h5>
+                            <h2 id="naiCount">0</h2>
+                        </div>
                     </div>
+                    <button class="btn btn-outline-info btn-sm" onclick="showComplianceProgramsModal()" title="View Compliance Program Codes" style="position: absolute; top: -45px; right: 0; white-space: nowrap;">
+                        <i class="fas fa-book"></i> Compliance Programs
+                    </button>
                 </div>
             </div>
         </div>
 
-        <!-- Filters Section -->
-        <div class="card mb-3">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="fas fa-filter"></i> Filters & Search
-                    <button class="btn btn-sm btn-outline-info float-end me-2" onclick="showComplianceProgramsModal()" data-bs-toggle="tooltip" title="View Compliance Program Codes">
-                        <i class="fas fa-info-circle"></i> Compliance Programs
-                    </button>
-                    <button class="btn btn-sm btn-outline-secondary float-end" onclick="clearFilters()">
-                        <i class="fas fa-times"></i> Clear All
-                    </button>
-                </h5>
-            </div>
-            <div class="card-body">
-                <div class="row g-3">
-                    <div class="col-md-3">
-                        <label class="form-label">
-                            Firm Name
-                            <i class="fas fa-info-circle info-btn" data-bs-toggle="tooltip" data-bs-placement="top" 
-                               title="Filter forms by the legal name of the inspected firm. Partial matches are supported."></i>
-                        </label>
-                        <input type="text" class="form-control" id="firmFilter" placeholder="Filter by firm name...">
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label">
-                            FEI Number
-                            <i class="fas fa-info-circle info-btn" data-bs-toggle="tooltip" data-bs-placement="top" 
-                               title="Filter by Facility Establishment Identifier (FEI). This is a unique 9-11 digit number assigned by FDA to each registered facility."></i>
-                        </label>
-                        <input type="text" class="form-control" id="feiFilter" placeholder="Filter by FEI...">
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label">
-                            Publish Date From
-                            <i class="fas fa-info-circle info-btn" data-bs-toggle="tooltip" data-bs-placement="top" 
-                               title="Filter forms published on or after this date. The publish date is when FDA made the form publicly available."></i>
-                        </label>
-                        <input type="date" class="form-control" id="publishDateFrom">
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label">
-                            Publish Date To
-                            <i class="fas fa-info-circle info-btn" data-bs-toggle="tooltip" data-bs-placement="top" 
-                               title="Filter forms published on or before this date. Use with 'From' date to create a date range."></i>
-                        </label>
-                        <input type="date" class="form-control" id="publishDateTo">
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label">
-                            Compliance Program
-                            <i class="fas fa-info-circle info-btn" data-bs-toggle="tooltip" data-bs-placement="top" 
-                               title="Filter by FDA Compliance Program code (e.g., 7356.002). Click 'Compliance Programs' button for full list and descriptions."></i>
-                        </label>
-                        <input type="text" class="form-control" id="complianceProgramFilter" placeholder="e.g., 7356.002">
-                    </div>
-                    <div class="col-md-1">
-                        <label class="form-label">
-                            Violations
-                            <i class="fas fa-info-circle info-btn" data-bs-toggle="tooltip" data-bs-placement="top" 
-                               title="Filter by number of violations found in the inspection. Violations are categorized as Critical, Significant, or Standard."></i>
-                        </label>
-                        <select class="form-select" id="violationFilter">
-                            <option value="">All</option>
-                            <option value="0">0</option>
-                            <option value="1-5">1-5</option>
-                            <option value="6-10">6-10</option>
-                            <option value="11+">11+</option>
-                        </select>
+        <!-- Main Filters Section -->
+        <div class="mb-3" style="background: white; padding: 1.5rem; border-radius: 4px; border: 1px solid #E0E0E0;">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label fw-500">Firm Search</label>
+                    <div class="input-group">
+                        <span class="input-group-text" style="background: white; border: 1px solid #E0E0E0;">
+                            <i class="fas fa-search" style="color: #999;"></i>
+                        </span>
+                        <input type="text" class="form-control" id="firmFilter" placeholder="Filter by firm name or FEI..." style="border: 1px solid #E0E0E0;">
                     </div>
                 </div>
-                <div class="row g-3 mt-2">
-                    <div class="col-md-3">
-                        <label class="form-label">
-                            Classification
-                            <i class="fas fa-info-circle info-btn" data-bs-toggle="tooltip" data-bs-placement="top" 
-                               title="OAI: Official Action Indicated - Regulatory action required. VAI: Voluntary Action Indicated - Firm should take corrective action. NAI: No Action Indicated - No significant violations found."></i>
-                        </label>
-                        <select class="form-select" id="classificationFilter">
-                            <option value="">All Classifications</option>
-                            <option value="OAI">OAI</option>
-                            <option value="VAI">VAI</option>
-                            <option value="NAI">NAI</option>
-                        </select>
+                <div class="col-md-4">
+                    <label class="form-label fw-500">Publish Date Range</label>
+                    <div class="input-group">
+                        <span class="input-group-text" style="background: white; border: 1px solid #E0E0E0;">
+                            <i class="fas fa-calendar" style="color: #999;"></i>
+                        </span>
+                        <input type="date" class="form-control" id="publishDateFrom" style="border: 1px solid #E0E0E0;">
+                        <span class="input-group-text" style="background: white; border: 1px solid #E0E0E0; border-left: none;">—</span>
+                        <input type="date" class="form-control" id="publishDateTo" style="border: 1px solid #E0E0E0; border-left: none;">
                     </div>
-                    <div class="col-md-3">
-                        <label class="form-label">
-                            Sort By
-                            <i class="fas fa-info-circle info-btn" data-bs-toggle="tooltip" data-bs-placement="top" 
-                               title="Select the column to sort results by. You can also click column headers in the table to sort."></i>
-                        </label>
-                        <select class="form-select" id="sortBy">
-                            <option value="publish_date">Publish Date</option>
-                            <option value="firm">Firm Name</option>
-                            <option value="fei">FEI Number</option>
-                            <option value="violation_count">Violations</option>
-                            <option value="overall_classification">Classification</option>
-                        </select>
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label">
-                            Sort Order
-                            <i class="fas fa-info-circle info-btn" data-bs-toggle="tooltip" data-bs-placement="top" 
-                               title="Ascending: A-Z, 0-9, oldest to newest. Descending: Z-A, 9-0, newest to oldest."></i>
-                        </label>
-                        <select class="form-select" id="sortOrder">
-                            <option value="desc">Descending</option>
-                            <option value="asc">Ascending</option>
-                        </select>
-                    </div>
-                    <div class="col-md-4 d-flex align-items-end">
-                        <button class="btn btn-primary me-2" onclick="loadSummary()">
-                            <i class="fas fa-sync-alt"></i> Refresh
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label fw-500">Violations</label>
+                    <select class="form-select" id="violationFilter" style="border: 1px solid #E0E0E0;">
+                        <option value="">All</option>
+                        <option value="0">0</option>
+                        <option value="1-5">1-5</option>
+                        <option value="6-10">6-10</option>
+                        <option value="11+">11+</option>
+                    </select>
+                </div>
+                <div class="col-md-3 d-flex gap-2 align-items-center justify-content-end">
+                    <div class="dropdown">
+                        <button class="btn btn-light dropdown-toggle" type="button" id="advancedFiltersBtn" data-bs-toggle="dropdown">
+                            <i class="fas fa-sliders-h"></i> Advanced Filters
                         </button>
-                        <button class="btn btn-secondary" onclick="applyFilters()">
-                            <i class="fas fa-search"></i> Apply Filters
-                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="advancedFiltersBtn" style="min-width: 350px; padding: 1.5rem;">
+                            <li style="margin-bottom: 1rem;">
+                                <label class="form-label">FEI Number</label>
+                                <input type="text" class="form-control form-control-sm" id="feiFilter" placeholder="Filter by FEI...">
+                            </li>
+                            <li style="margin-bottom: 1rem;">
+                                <label class="form-label">Classification</label>
+                                <select class="form-select form-select-sm" id="classificationFilter">
+                                    <option value="">All Classifications</option>
+                                    <option value="OAI">OAI</option>
+                                    <option value="VAI">VAI</option>
+                                    <option value="NAI">NAI</option>
+                                </select>
+                            </li>
+                            <li style="margin-bottom: 1rem;">
+                                <label class="form-label">Compliance Program</label>
+                                <input type="text" class="form-control form-control-sm" id="complianceProgramFilter" placeholder="e.g., 7356.002">
+                            </li>
+                            <li style="margin-bottom: 1rem;">
+                                <label class="form-label">Sort By</label>
+                                <select class="form-select form-select-sm" id="sortBy">
+                                    <option value="publish_date">Publish Date</option>
+                                    <option value="firm">Firm Name</option>
+                                    <option value="fei">FEI Number</option>
+                                    <option value="violation_count">Violations</option>
+                                    <option value="overall_classification">Classification</option>
+                                </select>
+                            </li>
+                            <li style="margin-bottom: 1rem;">
+                                <label class="form-label">Sort Order</label>
+                                <select class="form-select form-select-sm" id="sortOrder">
+                                    <option value="desc">Descending</option>
+                                    <option value="asc">Ascending</option>
+                                </select>
+                            </li>
+                            <li style="border-top: 1px solid #E0E0E0; padding-top: 1rem; margin-top: 1rem;">
+                                <button class="btn btn-sm btn-outline-secondary me-2" onclick="clearFilters()">
+                                    <i class="fas fa-times"></i> Clear Filters
+                                </button>
+                            </li>
+                        </ul>
                     </div>
+                    <button class="btn btn-primary" onclick="applyFilters()" style="min-width: 100px;">
+                        <i class="fas fa-search"></i> Apply
+                    </button>
+                    <button class="btn btn-light" onclick="loadSummary()" title="Refresh data">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
                 </div>
             </div>
         </div>
 
         <!-- Summary Table -->
         <div class="card">
-            <div class="card-header">
-                <h5><i class="fas fa-table"></i> 483 Form Summary</h5>
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; padding: 1.5rem;">
+                <h5 style="margin: 0;"><i class="fas fa-table"></i> 483 Form Summary</h5>
+                <span style="color: #666; font-size: 0.9rem;" id="summaryCount">Showing 1-10 of 0 <a href="#" onclick="downloadCSV()" style="margin-left: 1rem; color: #003366;">Export Results</a></span>
             </div>
-            <div class="card-body">
+            <div class="card-body" style="padding: 0;">
                 <div class="table-responsive">
-                    <table class="table table-hover" id="summaryTable">
-                        <thead>
+                    <table class="table table-hover mb-0" id="summaryTable">
+                        <thead style="background: white; border-bottom: 2px solid #E0E0E0;">
                             <tr>
-                                <th class="sortable" data-sort="firm">
-                                    Firm 
-                                    <i class="fas fa-info-circle info-btn" data-bs-toggle="tooltip" data-bs-placement="top" 
-                                       title="Legal name of the inspected facility"></i>
-                                    <i class="fas fa-sort"></i>
+                                <th class="sortable" data-sort="firm" style="padding: 1rem; font-weight: 600; color: #666; font-size: 0.8rem; text-transform: uppercase;">
+                                    Firm Name
+                                    <i class="fas fa-sort" style="margin-left: 8px; opacity: 0.5;"></i>
                                 </th>
-                                <th class="sortable" data-sort="fei">
-                                    FEI 
-                                    <i class="fas fa-info-circle info-btn" data-bs-toggle="tooltip" data-bs-placement="top" 
-                                       title="Facility Establishment Identifier - Unique FDA registration number"></i>
-                                    <i class="fas fa-sort"></i>
+                                <th class="sortable" data-sort="fei" style="padding: 1rem; font-weight: 600; color: #666; font-size: 0.8rem; text-transform: uppercase;">
+                                    FEI
+                                    <i class="fas fa-sort" style="margin-left: 8px; opacity: 0.5;"></i>
                                 </th>
-                                <th>
-                                    Form Type
-                                    <i class="fas fa-info-circle info-btn" data-bs-toggle="tooltip" data-bs-placement="top" 
-                                       title="Type of FDA form (typically 483 for inspection observations)"></i>
-                                </th>
-                                <th class="sortable" data-sort="publish_date">
+                                <th style="padding: 1rem; font-weight: 600; color: #666; font-size: 0.8rem; text-transform: uppercase;">
                                     Publish Date
-                                    <span style="display: inline-block; margin: 0 5px;">
-                                        <i class="fas fa-info-circle info-btn" data-bs-toggle="tooltip" data-bs-placement="top" 
-                                           title="Date when FDA published the form publicly" style="color: #003F87; cursor: help;"></i>
-                                    </span>
-                                    <i class="fas fa-sort" style="margin-left: 5px;"></i>
                                 </th>
-                                <th class="sortable" data-sort="overall_classification">
-                                    Classification 
-                                    <i class="fas fa-info-circle info-btn" data-bs-toggle="tooltip" data-bs-placement="top" 
-                                       title="OAI: Action required | VAI: Voluntary action | NAI: No action needed"></i>
-                                    <i class="fas fa-sort"></i>
+                                <th style="padding: 1rem; font-weight: 600; color: #666; font-size: 0.8rem; text-transform: uppercase;">
+                                    Classification
                                 </th>
-                                <th>
+                                <th style="padding: 1rem; font-weight: 600; color: #666; font-size: 0.8rem; text-transform: uppercase;">
                                     Compliance Programs
-                                    <i class="fas fa-info-circle info-btn" data-bs-toggle="tooltip" data-bs-placement="top" 
-                                       title="FDA Compliance Program codes applicable to this inspection. Click 'Compliance Programs' button for details."></i>
                                 </th>
-                                <th class="sortable" data-sort="violation_count">
-                                    Violations 
-                                    <i class="fas fa-info-circle info-btn" data-bs-toggle="tooltip" data-bs-placement="top" 
-                                       title="Total number of violations found, categorized as Critical, Significant, or Standard"></i>
-                                    <i class="fas fa-sort"></i>
+                                <th style="padding: 1rem; font-weight: 600; color: #666; font-size: 0.8rem; text-transform: uppercase;">
+                                    Violations
                                 </th>
-                                <th>
+                                <th style="padding: 1rem; font-weight: 600; color: #666; font-size: 0.8rem; text-transform: uppercase; text-align: center;">
                                     Actions
-                                    <i class="fas fa-info-circle info-btn" data-bs-toggle="tooltip" data-bs-placement="top" 
-                                       title="Click 'Details' to view comprehensive violation analysis, CFR codes, and recommended actions"></i>
                                 </th>
                             </tr>
                         </thead>
                         <tbody id="summaryTableBody">
                             <tr>
-                                <td colspan="8" class="text-center">Loading...</td>
+                                <td colspan="7" class="text-center" style="padding: 2rem;">Loading...</td>
                             </tr>
                         </tbody>
                     </table>
+                </div>
+                <div style="padding: 1.5rem; border-top: 1px solid #E0E0E0; display: flex; justify-content: space-between; align-items: center;">
+                    <span style="color: #666; font-size: 0.9rem;" id="paginationInfo">Showing 1 to 10 of 0 results</span>
+                    <nav id="paginationNav">
+                        <ul class="pagination mb-0">
+                            <li class="page-item"><a class="page-link" href="#" onclick="previousPage()"><i class="fas fa-chevron-left"></i></a></li>
+                            <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                            <li class="page-item"><a class="page-link" href="#">2</a></li>
+                            <li class="page-item"><a class="page-link" href="#">3</a></li>
+                            <li class="page-item"><a class="page-link" href="#" onclick="nextPage()"><i class="fas fa-chevron-right"></i></a></li>
+                        </ul>
+                    </nav>
                 </div>
             </div>
         </div>
@@ -812,6 +873,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         let summaryData = [];
+        let originalSummaryData = [];
         let currentSort = { field: 'publish_date', order: 'desc' };
 
         // Initialize sortable columns
@@ -877,7 +939,9 @@
         async function loadSummary() {
             try {
                 const response = await fetch('/api/summary');
-                summaryData = await response.json();
+                originalSummaryData = await response.json();
+                summaryData = JSON.parse(JSON.stringify(originalSummaryData)); // Deep copy
+                currentPage = 1; // Reset to first page
                 applyFilters();
                 loadStats();
                 populateChatbotDropdown();
@@ -888,12 +952,12 @@
 
         function populateChatbotDropdown() {
             const select = document.getElementById('chatbotInspectionSelect');
-            if (select && summaryData) {
+            if (select && originalSummaryData) {
                 // Clear existing options except "General Questions"
                 select.innerHTML = '<option value="">General Questions</option>';
                 
                 // Add inspections
-                summaryData.forEach(item => {
+                originalSummaryData.forEach(item => {
                     const option = document.createElement('option');
                     option.value = item.id;
                     option.textContent = `${item.id} - ${item.firm}`;
@@ -917,7 +981,7 @@
         }
 
         function applyFilters() {
-            if (summaryData.length === 0) return;
+            if (originalSummaryData.length === 0) return;
 
             // Get filter values
             const firmFilter = document.getElementById('firmFilter').value.toLowerCase().trim();
@@ -934,10 +998,10 @@
             currentSort = { field: sortBy, order: sortOrder };
             updateSortIndicators();
 
-            // Apply filters
-            let filteredData = summaryData.filter(item => {
+            // Apply filters - use originalSummaryData as source
+            let filteredData = originalSummaryData.filter(item => {
                 // Firm filter
-                if (firmFilter && !item.firm.toLowerCase().includes(firmFilter)) {
+                if (firmFilter && !item.firm.toLowerCase().includes(firmFilter) && !item.fei.toLowerCase().includes(firmFilter)) {
                     return false;
                 }
 
@@ -1047,6 +1111,7 @@
             document.getElementById('sortBy').value = 'publish_date';
             document.getElementById('sortOrder').value = 'desc';
             currentSort = { field: 'publish_date', order: 'desc' };
+            currentPage = 1; // Reset to first page
             updateSortIndicators();
             applyFilters();
         }
@@ -1055,11 +1120,18 @@
             const tbody = document.getElementById('summaryTableBody');
 
             if (data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8" class="text-center">No data found</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center">No data found</td></tr>';
+                updateSummaryCount();
                 return;
             }
 
-            tbody.innerHTML = data.map(item => {
+            // Pagination logic
+            const totalPages = Math.ceil(data.length / itemsPerPage);
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = Math.min(startIndex + itemsPerPage, data.length);
+            const pageData = data.slice(startIndex, endIndex);
+
+            tbody.innerHTML = pageData.map(item => {
                 const classificationClass = `classification-${item.overall_classification}`;
                 const programs = item.relevant_compliance_programs.join(', ') || 'N/A';
                 
@@ -1080,19 +1152,86 @@
                     <tr>
                         <td>${item.firm}</td>
                         <td>${item.fei}</td>
-                        <td>${item.form_type}</td>
                         <td><small>${publishDateDisplay}</small></td>
                         <td><span class="classification-badge ${classificationClass}">${item.overall_classification}</span></td>
                         <td><small>${programs}</small></td>
                         <td>${item.violation_count}</td>
-                        <td>
+                        <td style="text-align: center;">
                             <button class="btn btn-sm btn-primary" onclick="showDetails('${item.id}')">
-                                <i class="fas fa-info-circle"></i> Details
+                                <i class="fas fa-chevron-right"></i>
                             </button>
                         </td>
                     </tr>
                 `;
             }).join('');
+
+            // Update pagination info
+            updateSummaryCount();
+            updatePaginationNav(data.length);
+        }
+
+        function updatePaginationNav(totalItems) {
+            const totalPages = Math.ceil(totalItems / itemsPerPage);
+            const nav = document.getElementById('paginationNav');
+
+            if (totalPages <= 1) {
+                nav.innerHTML = '';
+                return;
+            }
+
+            // Sliding window pagination: show up to 5 page numbers, centered when possible
+            const maxVisible = 5;
+            let start = 1;
+            let end = Math.min(totalPages, maxVisible);
+
+            if (totalPages > maxVisible) {
+                start = currentPage - Math.floor(maxVisible / 2);
+                end = currentPage + Math.floor(maxVisible / 2);
+
+                if (start < 1) {
+                    start = 1;
+                    end = maxVisible;
+                }
+
+                if (end > totalPages) {
+                    end = totalPages;
+                    start = Math.max(1, totalPages - maxVisible + 1);
+                }
+            }
+
+            let paginationHTML = '<ul class="pagination mb-0">';
+            paginationHTML += '<li class="page-item"><a class="page-link" href="#" onclick="previousPage()"><i class="fas fa-chevron-left"></i></a></li>';
+
+            // Leading first page + ellipsis if needed
+            if (start > 1) {
+                paginationHTML += `<li class="page-item"><a class="page-link" href="#" onclick="goToPage(1)">1</a></li>`;
+                if (start > 2) {
+                    paginationHTML += '<li class="page-item disabled"><span class="page-link">...</span></li>';
+                }
+            }
+
+            for (let i = start; i <= end; i++) {
+                paginationHTML += `<li class="page-item ${i === currentPage ? 'active' : ''}"><a class="page-link" href="#" onclick="goToPage(${i})">${i}</a></li>`;
+            }
+
+            // Trailing ellipsis + last page if needed
+            if (end < totalPages) {
+                if (end < totalPages - 1) {
+                    paginationHTML += '<li class="page-item disabled"><span class="page-link">...</span></li>';
+                }
+                paginationHTML += `<li class="page-item"><a class="page-link" href="#" onclick="goToPage(${totalPages})">${totalPages}</a></li>`;
+            }
+
+            paginationHTML += '<li class="page-item"><a class="page-link" href="#" onclick="nextPage()"><i class="fas fa-chevron-right"></i></a></li>';
+            paginationHTML += '</ul>';
+
+            nav.innerHTML = paginationHTML;
+        }
+
+        function goToPage(page) {
+            event.preventDefault();
+            currentPage = page;
+            applyFilters();
         }
 
         async function showDetails(identifier) {
@@ -1396,6 +1535,79 @@
                     addSystemMessage('Context cleared - answering general questions');
                 }
             }
+        }
+
+        // Pagination variables
+        let currentPage = 1;
+        const itemsPerPage = 10;
+
+        // Update summary count
+        function updateSummaryCount() {
+            const totalItems = summaryData.length;
+            const startItem = (currentPage - 1) * itemsPerPage + 1;
+            const endItem = Math.min(currentPage * itemsPerPage, totalItems);
+            
+            if (totalItems === 0) {
+                document.getElementById('summaryCount').innerHTML = 
+                    `Showing 0 of 0 <a href="#" onclick="downloadCSV()" style="margin-left: 1rem; color: #003366;">Export Results</a>`;
+                document.getElementById('paginationInfo').textContent = 
+                    `Showing 0 of 0 results`;
+            } else {
+                document.getElementById('summaryCount').innerHTML = 
+                    `Showing ${startItem}-${endItem} of ${totalItems} <a href="#" onclick="downloadCSV()" style="margin-left: 1rem; color: #003366;">Export Results</a>`;
+                document.getElementById('paginationInfo').textContent = 
+                    `Showing ${startItem} to ${endItem} of ${totalItems} results`;
+            }
+        }
+
+        // Pagination functions
+        function previousPage() {
+            event.preventDefault();
+            if (currentPage > 1) {
+                currentPage--;
+                applyFilters();
+            }
+        }
+
+        function nextPage() {
+            event.preventDefault();
+            const totalPages = Math.ceil(summaryData.length / itemsPerPage);
+            if (currentPage < totalPages) {
+                currentPage++;
+                applyFilters();
+            }
+        }
+
+        // CSV Export function
+        function downloadCSV() {
+            if (summaryData.length === 0) {
+                alert('No data to export');
+                return;
+            }
+
+            const headers = ['Firm Name', 'FEI', 'Publish Date', 'Classification', 'Compliance Programs', 'Violations'];
+            const rows = summaryData.map(item => [
+                item.firm,
+                item.fei,
+                item.publish_date,
+                item.overall_classification,
+                (item.compliance_programs || []).join('; '),
+                item.violation_count
+            ]);
+
+            let csvContent = 'data:text/csv;charset=utf-8,';
+            csvContent += headers.join(',') + '\n';
+            rows.forEach(row => {
+                csvContent += row.map(cell => `"${cell}"`).join(',') + '\n';
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement('a');
+            link.setAttribute('href', encodedUri);
+            link.setAttribute('download', `FDA_483_Summary_${new Date().toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
     </script>
 

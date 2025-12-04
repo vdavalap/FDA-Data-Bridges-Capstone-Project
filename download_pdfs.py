@@ -104,6 +104,12 @@ def parse_args() -> argparse.Namespace:
         help="Directory to store downloaded PDFs (default: downloaded_pdfs).",
     )
     parser.add_argument(
+        "--results-dir",
+        type=Path,
+        default=Path(os.environ.get("RESULTS_DIR", "results")),
+        help="Directory containing JSON result files to check (default: results).",
+    )
+    parser.add_argument(
         "--delay",
         type=float,
         default=0.5,
@@ -150,14 +156,21 @@ def main():
     output_path = args.output
     output_path.mkdir(exist_ok=True)
     
-    # Filter out URLs that would result in already-downloaded PDFs
-    existing_pdfs = set()
-    for pdf_file in output_path.glob("*.pdf"):
-        existing_pdfs.add(pdf_file.name)
+    # Check for existing JSON result files instead of PDFs (since PDFs are deleted after processing)
+    results_path = args.results_dir
+    existing_json_results = set()
+    if results_path.exists():
+        for json_file in results_path.glob("*_result.json"):
+            # Extract identifier from filename (e.g., "FDA_123456_result.json" -> "FDA_123456")
+            identifier = json_file.stem.replace("_result", "")
+            existing_json_results.add(identifier)
+        print(f"Found {len(existing_json_results)} existing JSON result files in {results_path}")
+    else:
+        print(f"Results directory not found: {results_path} (will download all PDFs)")
     
-    # Extract media IDs from URLs to check if PDF already exists
-    def get_pdf_filename_from_url(url: str) -> str:
-        """Extract expected PDF filename from URL"""
+    # Extract media IDs from URLs to check if JSON result already exists
+    def get_identifier_from_url(url: str) -> str:
+        """Extract identifier (e.g., 'FDA_123456') from URL"""
         parsed_url = urlparse(url)
         path_parts = parsed_url.path.split("/")
         media_id = None
@@ -166,17 +179,17 @@ def main():
                 media_id = path_parts[i + 1]
                 break
         if media_id:
-            return f"FDA_{media_id}.pdf"
+            return f"FDA_{media_id}"
         return None
     
-    # Filter URLs to only include those not already downloaded
+    # Filter URLs to only include those without existing JSON results
     new_urls = []
     skipped_count = 0
     for url in urls:
         if pd.isna(url) or not isinstance(url, str) or not url.strip():
             continue
-        expected_filename = get_pdf_filename_from_url(url.strip())
-        if expected_filename and expected_filename in existing_pdfs:
+        identifier = get_identifier_from_url(url.strip())
+        if identifier and identifier in existing_json_results:
             skipped_count += 1
             continue
         new_urls.append(url)
@@ -189,12 +202,12 @@ def main():
         urls = urls[:limit]
         print(f"Total URLs in CSV: {total_urls}")
         if skipped_count > 0:
-            print(f"Skipped {skipped_count} already downloaded PDFs")
+            print(f"Skipped {skipped_count} PDFs (JSON results already exist)")
         print(f"Limit applied: Downloading {len(urls)} new PDFs (limit: {limit})")
     else:
         print(f"Total URLs in CSV: {total_urls}")
         if skipped_count > 0:
-            print(f"Skipped {skipped_count} already downloaded PDFs")
+            print(f"Skipped {skipped_count} PDFs (JSON results already exist)")
         print(f"Found {len(urls)} new URLs to download (no limit)")
 
     print(f"Saving files to: {output_path.resolve()}")
@@ -231,7 +244,7 @@ def main():
     print("\n" + "=" * 50)
     print("Download Summary:")
     print(f"  New downloads: {successful}")
-    print(f"  Already existed: {skipped_count + skipped_during_download}")
+    print(f"  Already processed (JSON exists): {skipped_count + skipped_during_download}")
     print(f"  Failed: {failed}")
     print(f"  Total processed: {len(urls)}")
     if limit > 0 and total_urls > limit:

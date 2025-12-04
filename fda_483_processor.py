@@ -50,7 +50,7 @@ class FDA483Processor:
         if not self.api_key:
             raise ValueError("OpenAI API key required. Set OPENAI_API_KEY environment variable or pass api_key parameter.")
         self.client = OpenAI(api_key=self.api_key)
-        self.model = "gpt-4-turbo-preview"
+        self.model = "gpt-4o-mini"
         
         # Load CSV data if provided
         self.csv_mapping = {}
@@ -177,7 +177,7 @@ Return ONLY a JSON object with "firm" and "fei" fields.
 Return format: {{"firm": "Complete Business Name Here", "fei": "1234567890"}}"""
             
             response = self.client.chat.completions.create(
-                model="gpt-4-turbo-preview",
+                model="gpt-4o-mini",
                 messages=[
                     {"role": "system", "content": "You are a helpful assistant that extracts structured data from FDA forms. Return only valid JSON."},
                     {"role": "user", "content": prompt}
@@ -638,4 +638,3 @@ Return ONLY valid JSON, no additional text."""
             print(f"\n✓ Deleted {deleted_count} PDF files after successful processing")
         
         return results
-

@@ -700,18 +700,13 @@
                                     <option value="asc">Ascending</option>
                                 </select>
                             </li>
-                            <li style="border-top: 1px solid #E0E0E0; padding-top: 1rem; margin-top: 1rem;">
-                                <button class="btn btn-sm btn-outline-secondary me-2" onclick="clearFilters()">
-                                    <i class="fas fa-times"></i> Clear Filters
-                                </button>
-                            </li>
                         </ul>
                     </div>
                     <button class="btn btn-primary" onclick="applyFilters()" style="min-width: 100px;">
                         <i class="fas fa-search"></i> Apply
                     </button>
-                    <button class="btn btn-light" onclick="loadSummary()" title="Refresh data">
-                        <i class="fas fa-sync-alt"></i>
+                    <button class="btn btn-outline-secondary" onclick="clearFilters()">
+                        <i class="fas fa-times"></i> Clear Filters
                     </button>
                 </div>
             </div>
@@ -1010,17 +1005,32 @@
                     return false;
                 }
 
-                // Publish date filter
+                // Publish date filter - use Date objects and inclusive end date
                 if (publishDateFrom || publishDateTo) {
                     if (!item.publish_date || item.publish_date === '') {
                         return false;
                     }
-                    const itemDate = item.publish_date.split(' ')[0]; // Get date part only
-                    if (publishDateFrom && itemDate < publishDateFrom) {
+                    // Extract date part only (YYYY-MM-DD) and parse
+                    const itemDateStr = (item.publish_date || '').split(' ')[0];
+                    const itemDate = itemDateStr ? new Date(itemDateStr) : null;
+                    if (!itemDate || isNaN(itemDate.getTime())) {
                         return false;
                     }
-                    if (publishDateTo && itemDate > publishDateTo) {
-                        return false;
+                    if (publishDateFrom) {
+                        const fromDate = new Date(publishDateFrom);
+                        if (!isNaN(fromDate.getTime()) && itemDate < fromDate) {
+                            return false;
+                        }
+                    }
+                    if (publishDateTo) {
+                        const toDate = new Date(publishDateTo);
+                        if (!isNaN(toDate.getTime())) {
+                            // Make end date inclusive by setting to end of day
+                            toDate.setHours(23, 59, 59, 999);
+                            if (itemDate > toDate) {
+                                return false;
+                            }
+                        }
                     }
                 }
 

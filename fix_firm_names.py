@@ -21,8 +21,17 @@ def extract_media_id_from_url(url):
     return match.group(1) if match else None
 
 def extract_media_id_from_filename(filename):
-    """Extract media ID from PDF filename like FDA_188559.pdf"""
+    """Extract media ID from PDF filename like FDA_188559.pdf or JSON filename like FDA_188559_result.json"""
+    # Try PDF pattern first
     match = re.search(r'FDA_(\d+)\.pdf', filename)
+    if match:
+        return match.group(1)
+    # Try JSON result pattern
+    match = re.search(r'FDA_(\d+)_result\.json', filename)
+    if match:
+        return match.group(1)
+    # Try generic pattern (just FDA_ followed by digits)
+    match = re.search(r'FDA_(\d+)', filename)
     return match.group(1) if match else None
 
 def create_firm_mapping_from_csv(csv_path):
@@ -203,28 +212,31 @@ def update_result_files(results_folder, firm_mapping, processor):
             current_firm = metadata.get('firm', 'Unknown')
             current_fei = metadata.get('fei', 'N/A')
             
-            # Check if we need to update
+            # Check if we need to update (if current values are Unknown/N/A)
             needs_update = (current_firm == 'Unknown' or current_fei == 'N/A')
             
             firm_name = None
             fei = None
+            csv_has_entry = False
             
-            # Try to get from mapping first (CSV or Excel)
+            # Try to get from mapping first (CSV or Excel) - use CSV data even if N/A/Unknown
             if media_id and media_id in firm_mapping:
                 firm_info = firm_mapping[media_id]
                 firm_name = firm_info['firm']
                 fei = firm_info['fei']
+                csv_has_entry = True
                 from_csv_count += 1
-                print(f"  ✓ {result_file.name}: Found in data - {firm_name} (FEI: {fei})")
-            else:
-                # Try to extract from PDF
+                print(f"  ✓ {result_file.name}: Using CSV data - {firm_name} (FEI: {fei})")
+            
+            # Only try PDF extraction if CSV doesn't have the entry AND PDF exists
+            if not csv_has_entry:
                 pdf_name = result_file.name.replace('_result.json', '.pdf')
                 pdf_path = os.path.join('downloaded_pdfs', pdf_name)
                 
                 if os.path.exists(pdf_path):
                     # If missing data, reprocess the PDF with improved extraction
                     if needs_update:
-                        print(f"  Reprocessing PDF: {result_file.name} (missing data)")
+                        print(f"  Reprocessing PDF: {result_file.name} (missing data, CSV not available)")
                         try:
                             # Reprocess with improved extraction
                             new_result = processor.process_483_form(pdf_path)
@@ -253,18 +265,25 @@ def update_result_files(results_folder, firm_mapping, processor):
                         extracted_count += 1
                         print(f"    Extracted: {firm_name} (FEI: {fei})")
                 else:
-                    print(f"  ✗ PDF not found for {result_file.name}")
+                    # PDF not found - keep current values or use defaults
+                    print(f"  ✗ PDF not found for {result_file.name} (CSV also not available)")
                     firm_name = current_firm if current_firm != 'Unknown' else 'Unknown'
                     fei = current_fei if current_fei != 'N/A' else 'N/A'
             
-            # Update metadata (only if we have new data or if reprocessed)
+            # Update metadata - use CSV data even if it's N/A/Unknown (it's the authoritative source)
             if 'metadata' not in result:
                 result['metadata'] = {}
             
-            if firm_name and firm_name != 'Unknown':
+            # Always update if we have values from CSV (even if N/A/Unknown)
+            if csv_has_entry:
                 result['metadata']['firm'] = firm_name
-            if fei and fei != 'N/A':
                 result['metadata']['fei'] = fei
+            else:
+                # Only update if we have better values than Unknown/N/A
+                if firm_name and firm_name != 'Unknown':
+                    result['metadata']['firm'] = firm_name
+                if fei and fei != 'N/A':
+                    result['metadata']['fei'] = fei
             
             # Save updated result
             with open(result_file, 'w') as f:

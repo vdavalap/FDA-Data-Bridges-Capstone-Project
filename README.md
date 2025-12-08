@@ -31,7 +31,7 @@ This system is designed for regulatory professionals, compliance officers, and q
 - **Violation Analysis**: Identifies and categorizes violations by severity (Critical, Significant, Standard)
 - **Compliance Program Mapping**: Links violations to relevant FDA Compliance Programs
 - **Interactive Dashboard**: Web-based dashboard for viewing analysis results with firm names, FEI numbers, and detailed violation analysis
-
+- **AI-Powered Chatbot Assistant**: Intelligent chatbot that answers questions about inspections, classifications, violations, and compliance using GPT-4
 - **Batch Processing**: Process multiple 483 forms simultaneously
 - **Firm Name Extraction**: Automatically extracts firm names and FEI numbers from PDFs and Excel files
 
@@ -139,6 +139,7 @@ Then open your browser to `http://localhost:5000`
    - Showing detailed violation analysis by severity and compliance program
    - Filtering and searching capabilities
    - Statistics and metrics
+   - AI-powered chatbot assistant for answering questions about inspections
 
 3. **run_analysis.py**: Command-line interface for processing forms
 
@@ -198,6 +199,16 @@ The interactive dashboard provides:
   - Risk prioritization
   - Documentation requirements
 - **Search & Filter**: Find specific forms by firm name, FEI, or classification
+- **AI-Powered Chatbot Assistant**: Interactive chatbot accessible via floating button that can answer questions about:
+  - Specific firms and their classifications, violations, FEI numbers, and publish dates
+  - Classification queries (e.g., "Which firms are OAI?", "How many firms are VAI?")
+  - Violation analysis and follow-up actions for specific inspections
+  - Risk prioritization and compliance program information
+  - Statistical queries about the dataset
+  - Recently published firms and date range queries
+  - General FDA compliance questions
+
+  The chatbot uses GPT-4 Mini and has access to all processed inspection data, FDA Compliance Program guidelines, and dashboard statistics to provide accurate, context-aware responses. You can optionally select a specific inspection from the dropdown for detailed, context-specific answers.
 
 ## FDA Compliance Programs
 
@@ -245,6 +256,8 @@ python dashboard.py
 ```
 
 5. **View Results**: Open `http://localhost:5000` in your browser
+
+6. **Use the Chatbot**: Click the chat icon in the bottom-right corner of the dashboard to ask questions about inspections, classifications, violations, and compliance
 
 
 ## Example Output
@@ -364,5 +377,4 @@ FDA-483-Form-Analysis-System/
 - PDF text extraction quality depends on PDF format
 - Dashboard requires results JSON files in the `results` folder
 - Firm names and FEI numbers are automatically extracted but can be manually updated in result JSON files
- - Dashboard requires results JSON files in the `results` folder
- - Firm names and FEI numbers are automatically extracted but can be manually updated in result JSON files
+- The chatbot requires an OpenAI API key (same as used for processing) to answer questions

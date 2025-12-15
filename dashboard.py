@@ -896,6 +896,140 @@ def chatbot():
                     "direct_answer": True
                 })
         
+        # Check for analytical questions that require analyzing ALL records
+        # Questions about highest/most violations
+        highest_violation_patterns = [
+            r'which firm (?:has|have) (?:the )?(?:highest|most|maximum) violations?',
+            r'which firm (?:has|have) (?:the )?most violations?',
+            r'firm (?:with|having) (?:the )?(?:highest|most|maximum) violations?',
+            r'(?:highest|most|maximum) violations?',
+            r'top (?:firm|firms) (?:with|by) (?:violations?|violation count)',
+        ]
+        
+        for pattern in highest_violation_patterns:
+            if re.search(pattern, question_lower, re.IGNORECASE):
+                summary_data = dashboard.get_summary_data()  # Get ALL records
+                if not summary_data:
+                    return jsonify({
+                        "answer": "No inspection data available.",
+                        "identifier": None,
+                        "direct_answer": True
+                    })
+                
+                # Sort by violation count (descending)
+                sorted_firms = sorted(summary_data, key=lambda x: x.get('violation_count', 0), reverse=True)
+                
+                # Check if asking for top N
+                top_match = re.search(r'top\s+(\d+)', question_lower, re.IGNORECASE)
+                limit = int(top_match.group(1)) if top_match else 1
+                
+                answer = f"**Firm{'s' if limit > 1 else ''} with {'Highest' if limit == 1 else 'Most'} Violations:**\n\n"
+                
+                for i, firm in enumerate(sorted_firms[:limit], 1):
+                    firm_name = firm.get('firm', 'Unknown')
+                    fei = firm.get('fei', 'N/A')
+                    violation_count = firm.get('violation_count', 0)
+                    classification = firm.get('overall_classification', 'N/A')
+                    publish_date = firm.get('publish_date', '')
+                    
+                    answer += f"{i}. **{firm_name}**"
+                    if fei != 'N/A':
+                        answer += f" (FEI: {fei})"
+                    answer += f"\n   - **Violations:** {violation_count}\n"
+                    answer += f"   - **Classification:** {classification}\n"
+                    if publish_date:
+                        try:
+                            date_obj = datetime.strptime(publish_date.split()[0], '%Y-%m-%d')
+                            formatted_date = date_obj.strftime('%Y-%m-%d')
+                            answer += f"   - **Published:** {formatted_date}\n"
+                        except:
+                            pass
+                    answer += "\n"
+                
+                return jsonify({
+                    "answer": answer,
+                    "identifier": None,
+                    "direct_answer": True
+                })
+        
+        # Questions about lowest/fewest violations
+        lowest_violation_patterns = [
+            r'which firm (?:has|have) (?:the )?(?:lowest|fewest|minimum) violations?',
+            r'which firm (?:has|have) (?:the )?fewest violations?',
+            r'firm (?:with|having) (?:the )?(?:lowest|fewest|minimum) violations?',
+        ]
+        
+        for pattern in lowest_violation_patterns:
+            if re.search(pattern, question_lower, re.IGNORECASE):
+                summary_data = dashboard.get_summary_data()  # Get ALL records
+                if not summary_data:
+                    return jsonify({
+                        "answer": "No inspection data available.",
+                        "identifier": None,
+                        "direct_answer": True
+                    })
+                
+                # Sort by violation count (ascending)
+                sorted_firms = sorted(summary_data, key=lambda x: x.get('violation_count', 0))
+                
+                answer = "**Firm with Fewest Violations:**\n\n"
+                firm = sorted_firms[0]
+                firm_name = firm.get('firm', 'Unknown')
+                fei = firm.get('fei', 'N/A')
+                violation_count = firm.get('violation_count', 0)
+                classification = firm.get('overall_classification', 'N/A')
+                publish_date = firm.get('publish_date', '')
+                
+                answer += f"**{firm_name}**"
+                if fei != 'N/A':
+                    answer += f" (FEI: {fei})"
+                answer += f"\n   - **Violations:** {violation_count}\n"
+                answer += f"   - **Classification:** {classification}\n"
+                if publish_date:
+                    try:
+                        date_obj = datetime.strptime(publish_date.split()[0], '%Y-%m-%d')
+                        formatted_date = date_obj.strftime('%Y-%m-%d')
+                        answer += f"   - **Published:** {formatted_date}\n"
+                    except:
+                        pass
+                
+                return jsonify({
+                    "answer": answer,
+                    "identifier": None,
+                    "direct_answer": True
+                })
+        
+        # Questions about average violations
+        average_patterns = [
+            r'what (?:is|are) the (?:average|mean) violations?',
+            r'average (?:number of )?violations?',
+            r'mean violations?',
+        ]
+        
+        for pattern in average_patterns:
+            if re.search(pattern, question_lower, re.IGNORECASE):
+                summary_data = dashboard.get_summary_data()  # Get ALL records
+                if not summary_data:
+                    return jsonify({
+                        "answer": "No inspection data available.",
+                        "identifier": None,
+                        "direct_answer": True
+                    })
+                
+                total_violations = sum(item.get('violation_count', 0) for item in summary_data)
+                avg_violations = total_violations / len(summary_data) if summary_data else 0
+                
+                answer = f"**Average Violations Across All Firms:**\n\n"
+                answer += f"Total Firms: {len(summary_data)}\n"
+                answer += f"Total Violations: {total_violations}\n"
+                answer += f"Average Violations per Firm: {avg_violations:.2f}\n"
+                
+                return jsonify({
+                    "answer": answer,
+                    "identifier": None,
+                    "direct_answer": True
+                })
+        
         # Check for aggregate questions (e.g., "how many firms are OAI?")
         aggregate_patterns = [
             r'how many firms (?:are|have|classified as) (oai|vai|nai)',
@@ -1058,19 +1192,23 @@ CRITICAL RULES:
 1. ALWAYS use the actual data from the dashboard context provided - never say you don't have access to data
 2. If data is available in the context, use it directly - do NOT give generic responses
 3. For questions about specific firms, search the provided firm list and use their actual data
-4. For statistical questions, calculate from the provided data
-5. For date range questions, filter the provided data by dates
-6. If a firm is not found in the data, say so clearly but still provide general guidance
-7. Always reference specific compliance program codes, classifications, and violation counts from the data
-8. Be precise and factual - use exact numbers, dates, and classifications from the data
+4. For statistical questions, calculate from the provided data - the dashboard context shows statistics for ALL records in the database
+5. For analytical questions (e.g., "which firm has highest violations", "top firms by violations"), analyze ALL records mentioned in the statistics, not just the sample list shown
+6. The dashboard context includes summary statistics calculated from ALL records in the database - use these for comprehensive analysis
+7. For date range questions, filter the provided data by dates
+8. If a firm is not found in the data, say so clearly but still provide general guidance
+9. Always reference specific compliance program codes, classifications, and violation counts from the data
+10. Be precise and factual - use exact numbers, dates, and classifications from the data
+11. IMPORTANT: When asked about "highest", "most", "top", "lowest", or similar analytical questions, use the statistics provided which are calculated from ALL records in the database
 
 You have access to:
-- Complete list of all firms with their classifications, FEI numbers, violation counts, and publish dates
+- Complete statistics calculated from ALL records in the database (total firms, classification distribution, total violations, etc.)
+- Sample list of firms (first 100 shown for context, but statistics cover ALL records)
 - Detailed violation analysis for each inspection
 - Follow-up actions and risk prioritization data
 - FDA Compliance Program guidelines
 
-Answer questions directly using this data."""
+Answer questions directly using this data. For analytical questions, use the comprehensive statistics provided which reflect ALL records."""
         
         # Check if firm was mentioned but not found
         firm_not_found_message = ""
@@ -1141,8 +1279,11 @@ User Question: {question}
 
 INSTRUCTIONS:
 - Answer the question using ONLY the data provided above
+- IMPORTANT: The dashboard context includes comprehensive statistics calculated from ALL records in the database
+- For analytical questions (highest violations, top firms, averages, etc.), use the comprehensive statistics provided which reflect ALL records
+- The firm list shown is a sample (first 100), but statistics cover ALL records - use statistics for analytical questions
 - If the question asks about specific firms, search the firm list in the dashboard context
-- If asking for statistics, calculate from the provided data
+- If asking for statistics, use the comprehensive statistics provided which are calculated from ALL records
 - If asking about dates, use the publish dates from the firm list
 - If asking about classifications, use the actual classifications shown in the data
 - Be specific and factual - use exact numbers, names, and dates from the data
@@ -1272,8 +1413,24 @@ def build_comprehensive_dashboard_context() -> str:
     for program, firms in firms_by_program.items():
         context += f"- {program}: {len(set(firms))} unique firms\n"
     
+    # Add comprehensive statistics for analytical questions
+    context += f"\n**Comprehensive Statistics (Based on ALL {len(summary_data)} Records):**\n"
+    context += f"- Total Firms: {len(summary_data)}\n"
+    context += f"- Total Violations: {total_violations}\n"
+    context += f"- Average Violations per Firm: {total_violations / len(summary_data) if summary_data else 0:.2f}\n"
+    
+    # Find firms with highest and lowest violations
+    if summary_data:
+        sorted_by_violations = sorted(summary_data, key=lambda x: x.get('violation_count', 0), reverse=True)
+        highest = sorted_by_violations[0]
+        lowest = sorted_by_violations[-1]
+        context += f"- Firm with Most Violations: {highest.get('firm', 'Unknown')} ({highest.get('violation_count', 0)} violations)\n"
+        context += f"- Firm with Fewest Violations: {lowest.get('firm', 'Unknown')} ({lowest.get('violation_count', 0)} violations)\n"
+    
     # List all firms with key information (limit to 100 for context size, but provide summary)
-    context += f"\n**All Firms in Database (showing first 100, total {len(summary_data)}):**\n"
+    context += f"\n**Sample Firms List (showing first 100 of {len(summary_data)} total firms):**\n"
+    context += f"NOTE: The statistics above are calculated from ALL {len(summary_data)} records in the database.\n"
+    context += f"For analytical questions (highest violations, top firms, etc.), use the comprehensive statistics provided above.\n\n"
     for i, item in enumerate(summary_data[:100], 1):  # Limit to first 100 for context size
         firm_name = item.get('firm', 'Unknown')
         fei = item.get('fei', 'N/A')
